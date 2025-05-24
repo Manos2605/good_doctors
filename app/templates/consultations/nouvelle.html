@@ -3,24 +3,102 @@
 {% block title %}Nouvelle Consultation{% endblock %}
 
 {% block content %}
-    <h1>Nouvelle Consultation</h1>
-    
-    <form method="POST" class="consultation-form">
-        <div class="form-group">
-            <label for="patient_nom">Nom du patient</label>
-            <input type="text" id="patient_nom" name="patient_nom" required>
-        </div>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Prendre rendez-vous avec {{ medecin.prenom }} {{ medecin.nom }}</h3>
+                    <p class="text-muted mb-0">
+                        {% if medecin.role == 'medecin' %}Médecin{% else %}Vétérinaire{% endif %}
+                        {% if medecin.specialite %} - {{ medecin.specialite }}{% endif %}
+                    </p>
+                </div>
+                <div class="card-body">
+                    <!-- Sélection de la date -->
+                    <div class="mb-4">
+                        <h5>Sélectionner une date</h5>
+                        <form method="GET" action="{{ url_for('consultations.nouvelle', medecin_id=medecin.id) }}" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="date" class="form-control" name="date" 
+                                       value="{{ date }}" min="{{ now.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Voir les créneaux</button>
+                            </div>
+                        </form>
+                    </div>
 
-        <div class="form-group">
-            <label for="patient_prenom">Prénom du patient</label>
-            <input type="text" id="patient_prenom" name="patient_prenom" required>
-        </div>
+                    {% if date %}
+                        {% if creneaux %}
+                            <form method="POST" action="{{ url_for('consultations.nouvelle', medecin_id=medecin.id) }}">
+                                <input type="hidden" name="medecin_id" value="{{ medecin.id }}">
+                                
+                                <!-- Sélection du créneau -->
+                                <div class="mb-4">
+                                    <h5>Choisir un créneau</h5>
+                                    <div class="row g-3">
+                                        {% for creneau in creneaux %}
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="date" 
+                                                       id="creneau_{{ creneau.id }}" 
+                                                       value="{{ creneau.date_debut.strftime('%Y-%m-%dT%H:%M') }}" required>
+                                                <label class="form-check-label" for="creneau_{{ creneau.id }}">
+                                                    {{ creneau.date_debut.strftime('%H:%M') }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
 
-        <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" name="description" rows="5"></textarea>
-        </div>
+                                <!-- Type de consultation -->
+                                <div class="mb-4">
+                                    <h5>Type de consultation</h5>
+                                    <select class="form-select" name="type" required>
+                                        <option value="">Sélectionnez un type</option>
+                                        <option value="video">Consultation vidéo</option>
+                                        <option value="chat">Consultation par chat</option>
+                                        <option value="message">Consultation par message</option>
+                                    </select>
+                                </div>
 
-        <button type="submit" class="btn btn-primary">Créer la consultation</button>
-    </form>
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <h5>Description</h5>
+                                    <textarea class="form-control" name="description" rows="3" 
+                                              placeholder="Décrivez brièvement le motif de votre consultation"></textarea>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success">Confirmer le rendez-vous</button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-info">
+                                Aucun créneau disponible pour cette date.
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            Veuillez sélectionner une date pour voir les créneaux disponibles.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Définir la date minimale à aujourd'hui
+    const dateInput = document.querySelector('input[type="date"]');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+});
+</script>
+{% endblock %}
 {% endblock %} 

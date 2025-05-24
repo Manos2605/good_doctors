@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Gestion des Rendez-vous</h1>
+
+            <!-- Filtres de date -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('consultations.rendez_vous') }}" class="row g-3">
+                        <div class="col-md-5">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" class="form-control" id="date_debut" name="date_debut" 
+                                   value="{{ date_debut }}" min="{{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="date_fin" class="form-label">Date de fin</label>
+                            <input type="date" class="form-control" id="date_fin" name="date_fin" 
+                                   value="{{ date_fin }}" min="{{ date_debut }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Création de nouveaux créneaux -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Créer de nouveaux créneaux</h5>
+                </div>
+                <div class="card-body">
+                    <form id="nouveauRendezVousForm" class="row g-3">
+                        <div class="col-md-5">
+                            <label for="nouveau_date_debut" class="form-label">Date et heure de début</label>
+                            <input type="datetime-local" class="form-control" id="nouveau_date_debut" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="nouveau_date_fin" class="form-label">Date et heure de fin</label>
+                            <input type="datetime-local" class="form-control" id="nouveau_date_fin" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100">Créer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Liste des rendez-vous -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Mes rendez-vous</h5>
+                </div>
+                <div class="card-body">
+                    {% if rendez_vous %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Heure</th>
+                                        <th>Statut</th>
+                                        <th>Patient</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rdv in rendez_vous %}
+                                    <tr>
+                                        <td>{{ rdv.date_debut.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ rdv.date_debut.strftime('%H:%M') }} - {{ rdv.date_fin.strftime('%H:%M') }}</td>
+                                        <td>
+                                            <span class="badge {% if rdv.statut == 'disponible' %}bg-success{% elif rdv.statut == 'reserve' %}bg-primary{% else %}bg-danger{% endif %}">
+                                                {{ rdv.statut|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if rdv.consultation and rdv.consultation.patient %}
+                                                {{ rdv.consultation.patient.prenom }} {{ rdv.consultation.patient.nom }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if rdv.statut == 'disponible' %}
+                                            <button class="btn btn-danger btn-sm supprimer-rdv" data-id="{{ rdv.id }}">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucun rendez-vous trouvé pour cette période.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Définir les dates minimales
+    const dateDebutInput = document.getElementById('date_debut');
+    const dateFinInput = document.getElementById('date_fin');
+    const nouveauDateDebutInput = document.getElementById('nouveau_date_debut');
+    const nouveauDateFinInput = document.getElementById('nouveau_date_fin');
+    
+    const today = new Date().toISOString().split('T')[0];
+    dateDebutInput.min = today;
+    nouveauDateDebutInput.min = today;
+
+    // Mettre à jour la date de fin minimale
+    dateDebutInput.addEventListener('change', function() {
+        dateFinInput.min = this.value;
+    });
+
+    nouveauDateDebutInput.addEventListener('change', function() {
+        nouveauDateFinInput.min = this.value;
+    });
+
+    // Gestion de la création de nouveaux créneaux
+    document.getElementById('nouveauRendezVousForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const dateDebut = nouveauDateDebutInput.value;
+        const dateFin = nouveauDateFinInput.value;
+        
+        fetch('{{ url_for("consultations.nouveau_rendez_vous") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `date_debut=${dateDebut}&date_fin=${dateFin}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Une erreur est survenue lors de la création des créneaux.');
+        });
+    });
+
+    // Gestion de la suppression des rendez-vous
+    document.querySelectorAll('.supprimer-rdv').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce créneau ?')) {
+                const rdvId = this.dataset.id;
+                
+                fetch(`{{ url_for('consultations.supprimer_rendez_vous', id=0) }}`.replace('0', rdvId), {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue lors de la suppression du créneau.');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 
