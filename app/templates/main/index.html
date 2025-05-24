@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Bienvenue sur Good Doctors</h1>
+            
+            {% if current_user.role == 'patient' %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Mes Consultations</h5>
+                            <p class="card-text">Consultez vos rendez-vous médicaux et vos consultations en ligne.</p>
+                            <a href="{{ url_for('consultations.index') }}" class="btn btn-primary">Voir mes consultations</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Trouver un Médecin</h5>
+                            <p class="card-text">Recherchez un professionnel de santé disponible pour une consultation.</p>
+                            <a href="{{ url_for('consultations.recherche_medecin') }}" class="btn btn-primary">Prendre rendez-vous</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if current_user.role in ['medecin', 'veterinaire'] %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Mes Consultations</h5>
+                            <p class="card-text">Gérez vos consultations et rendez-vous avec vos patients.</p>
+                            <a href="{{ url_for('consultations.index') }}" class="btn btn-primary">Voir mes consultations</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Mon Agenda</h5>
+                            <p class="card-text">Consultez et gérez votre emploi du temps.</p>
+                            <a href="{{ url_for('consultations.rendez_vous') }}" class="btn btn-primary">Voir mon agenda</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if current_user.role == 'admin' %}
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Gestion des Utilisateurs</h5>
+                            <p class="card-text">Gérez les comptes des utilisateurs et des professionnels de santé.</p>
+                            <a href="#" class="btn btn-primary">Gérer les utilisateurs</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Consultations</h5>
+                            <p class="card-text">Consultez et gérez toutes les consultations du système.</p>
+                            <a href="{{ url_for('consultations.index') }}" class="btn btn-primary">Voir les consultations</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Statistiques</h5>
+                            <p class="card-text">Consultez les statistiques d'utilisation de la plateforme.</p>
+                            <a href="#" class="btn btn-primary">Voir les statistiques</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Trouver un Médecin</h1>
+            
+            <!-- Formulaire de recherche -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('consultations.recherche_medecin') }}" class="row g-3">
+                        <div class="col-md-5">
+                            <label for="specialite" class="form-label">Spécialité</label>
+                            <input type="text" class="form-control" id="specialite" name="specialite" 
+                                   value="{{ specialite }}" placeholder="Ex: Cardiologie, Pédiatrie...">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="date" class="form-label">Date souhaitée</label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   value="{{ date if date else '' }}" min="{{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Rechercher</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Résultats de la recherche -->
+            {% if professionnels %}
+                <div class="row">
+                    {% for pro in professionnels %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ pro.prenom }} {{ pro.nom }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">
+                                    {% if pro.role == 'medecin' %}Médecin{% else %}Vétérinaire{% endif %}
+                                    {% if pro.specialite %} - {{ pro.specialite }}{% endif %}
+                                </h6>
+                                <p class="card-text">
+                                    {% if pro.telephone %}
+                                    <i class="fas fa-phone"></i> {{ pro.telephone }}<br>
+                                    {% endif %}
+                                    {% if pro.adresse %}
+                                    <i class="fas fa-map-marker-alt"></i> {{ pro.adresse }}
+                                    {% endif %}
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('consultations.nouvelle', medecin_id=pro.id) }}" 
+                                       class="btn btn-primary">
+                                        Prendre rendez-vous
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    {% if specialite or date %}
+                        Aucun professionnel de santé ne correspond à vos critères de recherche.
+                    {% else %}
+                        Aucun professionnel de santé n'est actuellement disponible.
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Définir la date minimale à aujourd'hui
+    const dateInput = document.getElementById('date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+});
+</script>
+{% endblock %}
+{% endblock %} 
