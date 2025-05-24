@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Good Doctors</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <div class="nav-wrapper">
+            <a href="{{ url_for('consultations.index') }}" class="brand-logo">Good Doctors</a>
+            <ul class="right">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('consultations.nouvelle') }}">Nouvelle Consultation</a></li>
+                    <li><a href="{{ url_for('consultations.index') }}">Consultations</a></li>
+                    <li><a href="#">Déconnexion</a></li>
+                {% else %}
+                    <li><a href="#">Connexion</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

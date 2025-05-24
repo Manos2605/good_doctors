@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvelle Consultation{% endblock %}
+
+{% block content %}
+    <h1>Nouvelle Consultation</h1>
+    
+    <form method="POST" class="consultation-form">
+        <div class="form-group">
+            <label for="patient_nom">Nom du patient</label>
+            <input type="text" id="patient_nom" name="patient_nom" required>
+        </div>
+
+        <div class="form-group">
+            <label for="patient_prenom">Prénom du patient</label>
+            <input type="text" id="patient_prenom" name="patient_prenom" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Créer la consultation</button>
+    </form>
+{% endblock %} 

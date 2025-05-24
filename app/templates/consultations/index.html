@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Consultations{% endblock %}
+
+{% block content %}
+    <h1>Liste des Consultations</h1>
+    
+    <div class="consultations-list">
+        {% if consultations %}
+            {% for consultation in consultations %}
+                <div class="consultation-card">
+                    <h3>{{ consultation.patient_prenom }} {{ consultation.patient_nom }}</h3>
+                    <p>Date: {{ consultation.date.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p>{{ consultation.description }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Aucune consultation trouvée.</p>
+        {% endif %}
+    </div>
+{% endblock %} 
