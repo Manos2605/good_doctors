@@ -73,7 +73,7 @@ def nouvelle():
         if medecin.role not in ['medecin', 'veterinaire']:
             flash('Utilisateur non autorisé', 'error')
             return redirect(url_for('consultations.recherche_medecin'))
-            
+        
         # Vérifier si le créneau est toujours disponible
         rendez_vous = RendezVous.query.get_or_404(creneau_id)
         if rendez_vous.statut != 'disponible' or rendez_vous.medecin_id != int(medecin_id):
@@ -524,7 +524,7 @@ def donner_avis(consultation_id):
     }
     
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({'success': True}) 
 
 @bp.route('/dossier-medical')
 @login_required
