@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Médicaments</h1>
+                {% if current_user.role in ['admin', 'medecin'] %}
+                <a href="{{ url_for('consultations.ajouter_medicament') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter un médicament
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un médicament...">
+                        <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="btn-group float-end">
+                        <button type="button" class="btn btn-outline-primary active" data-filter="all">Tous</button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="africain">Africains</button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="moderne">Modernes</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="medicamentsList">
+                {% for medicament in medicaments %}
+                <div class="col-md-4 mb-4 medicament-card" data-type="{{ medicament.type }}">
+                    <div class="card h-100">
+                        {% if medicament.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + medicament.image) }}" class="card-img-top" alt="{{ medicament.nom }}">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-pills fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ medicament.nom }}</h5>
+                            <p class="card-text">
+                                <span class="badge bg-{{ 'success' if medicament.type == 'africain' else 'primary' }}">
+                                    {{ medicament.type|title }}
+                                </span>
+                                <span class="badge bg-info">{{ medicament.categorie }}</span>
+                            </p>
+                            <p class="card-text">{{ medicament.description|truncate(100) }}</p>
+                            <p class="card-text">
+                                <strong>Prix:</strong> {{ "%.2f"|format(medicament.prix) }} €<br>
+                                <strong>Stock:</strong> {{ medicament.stock }}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#medicamentModal{{ medicament.id }}">
+                                <i class="fas fa-info-circle"></i> Détails
+                            </button>
+                            {% if current_user.role in ['admin', 'medecin'] %}
+                            <a href="#" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal pour les détails -->
+                <div class="modal fade" id="medicamentModal{{ medicament.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">{{ medicament.nom }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    {% if medicament.image %}
+                                    <div class="col-md-4">
+                                        <img src="{{ url_for('static', filename='uploads/' + medicament.image) }}" class="img-fluid" alt="{{ medicament.nom }}">
+                                    </div>
+                                    {% endif %}
+                                    <div class="col-md-{% if medicament.image %}8{% else %}12{% endif %}">
+                                        <p><strong>Type:</strong> {{ medicament.type|title }}</p>
+                                        <p><strong>Catégorie:</strong> {{ medicament.categorie }}</p>
+                                        <p><strong>Prix:</strong> {{ "%.2f"|format(medicament.prix) }} €</p>
+                                        <p><strong>Stock:</strong> {{ medicament.stock }}</p>
+                                        <p><strong>Description:</strong><br>{{ medicament.description }}</p>
+                                        {% if medicament.effets_secondaires %}
+                                        <p><strong>Effets secondaires:</strong><br>{{ medicament.effets_secondaires }}</p>
+                                        {% endif %}
+                                        {% if medicament.contre_indications %}
+                                        <p><strong>Contre-indications:</strong><br>{{ medicament.contre_indications }}</p>
+                                        {% endif %}
+                                        {% if medicament.date_expiration %}
+                                        <p><strong>Date d'expiration:</strong> {{ medicament.date_expiration.strftime('%d/%m/%Y') }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtrage par type
+    const filterButtons = document.querySelectorAll('[data-filter]');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            const cards = document.querySelectorAll('.medicament-card');
+            
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            cards.forEach(card => {
+                if (filter === 'all' || card.dataset.type === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Recherche
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    
+    function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const cards = document.querySelectorAll('.medicament-card');
+        
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const description = card.querySelector('.card-text').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

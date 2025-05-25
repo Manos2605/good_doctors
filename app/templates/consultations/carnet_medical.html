@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Carnet Médical - Meditech{% endblock %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+<style>
+    .section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        color: #2c3e50;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4ecdc4;
+    }
+    
+    .info-item {
+        margin-bottom: 15px;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #34495e;
+    }
+    
+    .vaccination-item, .consultation-item, .traitement-item, .document-item, .suivi-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-active {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .status-completed {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Mon Carnet Médical</h1>
+    
+    <!-- Informations personnelles -->
+    <div class="section">
+        <h2 class="section-title">Informations personnelles</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Nom :</span>
+                    <span>{{ current_user.nom }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Prénom :</span>
+                    <span>{{ current_user.prenom }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date de naissance :</span>
+                    <span>{{ current_user.date_naissance.strftime('%d/%m/%Y') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Sexe :</span>
+                    <span>{{ current_user.sexe }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Adresse :</span>
+                    <span>{{ current_user.adresse }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Téléphone :</span>
+                    <span>{{ current_user.telephone }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Contact d'urgence :</span>
+                    <span>{{ current_user.contact_urgence }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informations médicales -->
+    <div class="section">
+        <h2 class="section-title">Informations médicales</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Groupe sanguin :</span>
+                    <span>{{ dossier.groupe_sanguin }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Électrophorèse :</span>
+                    <span>{{ dossier.electrophorese }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Allergies :</span>
+                    <span>{{ dossier.allergies }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Antécédents médicaux :</span>
+                    <span>{{ dossier.antecedents_medicaux }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Antécédents familiaux :</span>
+                    <span>{{ dossier.antecedents_familiaux }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vaccinations -->
+    <div class="section">
+        <h2 class="section-title">Vaccinations</h2>
+        {% for vaccination in vaccinations %}
+        <div class="vaccination-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Vaccin :</span>
+                        <span>{{ vaccination.nom_vaccin }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date :</span>
+                        <span>{{ vaccination.date_vaccination.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Rappel :</span>
+                        <span>{{ vaccination.date_rappel.strftime('%d/%m/%Y') if vaccination.date_rappel else 'Non prévu' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lot :</span>
+                        <span>{{ vaccination.lot }}</span>
+                    </div>
+                </div>
+            </div>
+            {% if vaccination.notes %}
+            <div class="info-item">
+                <span class="info-label">Notes :</span>
+                <span>{{ vaccination.notes }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Consultations -->
+    <div class="section">
+        <h2 class="section-title">Consultations</h2>
+        {% for consultation in consultations %}
+        <div class="consultation-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Date :</span>
+                        <span>{{ consultation.date.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Médecin :</span>
+                        <span>Dr. {{ consultation.medecin.prenom }} {{ consultation.medecin.nom }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Type :</span>
+                        <span>{{ consultation.type }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Statut :</span>
+                        <span class="status-badge status-{{ consultation.statut }}">{{ consultation.statut }}</span>
+                    </div>
+                </div>
+            </div>
+            {% if consultation.notes %}
+            <div class="info-item">
+                <span class="info-label">Notes :</span>
+                <span>{{ consultation.notes }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Traitements en cours -->
+    <div class="section">
+        <h2 class="section-title">Traitements en cours</h2>
+        {% for traitement in traitements %}
+        <div class="traitement-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Médicament :</span>
+                        <span>{{ traitement.medicament }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Posologie :</span>
+                        <span>{{ traitement.posologie }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Début :</span>
+                        <span>{{ traitement.date_debut.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Fin :</span>
+                        <span>{{ traitement.date_fin.strftime('%d/%m/%Y') if traitement.date_fin else 'En cours' }}</span>
+                    </div>
+                </div>
+            </div>
+            {% if traitement.observations %}
+            <div class="info-item">
+                <span class="info-label">Observations :</span>
+                <span>{{ traitement.observations }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Documents médicaux -->
+    <div class="section">
+        <h2 class="section-title">Documents médicaux</h2>
+        {% for document in documents %}
+        <div class="document-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Type :</span>
+                        <span>{{ document.type_document }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date :</span>
+                        <span>{{ document.date_emission.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Description :</span>
+                        <span>{{ document.description }}</span>
+                    </div>
+                    <div class="info-item">
+                        <a href="{{ url_for('static', filename='uploads/' + document.fichier) }}" class="btn btn-sm btn-primary" target="_blank">
+                            <i class="fas fa-download me-1"></i>Télécharger
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Suivi de pathologies -->
+    <div class="section">
+        <h2 class="section-title">Suivi de pathologies</h2>
+        {% for suivi in suivis %}
+        <div class="suivi-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Pathologie :</span>
+                        <span>{{ suivi.pathologie }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date de début :</span>
+                        <span>{{ suivi.date_debut.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Statut :</span>
+                        <span class="status-badge status-{{ suivi.statut }}">{{ suivi.statut }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Observations :</span>
+                        <span>{{ suivi.observations }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

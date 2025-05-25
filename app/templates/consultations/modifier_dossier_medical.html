@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Modifier le dossier médical</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Informations personnelles</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="date_naissance" class="form-label">Date de naissance</label>
+                                    <input type="date" class="form-control" id="date_naissance" name="date_naissance" 
+                                           value="{{ current_user.date_naissance.strftime('%Y-%m-%d') if current_user.date_naissance else '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="sexe" class="form-label">Sexe</label>
+                                    <select class="form-select" id="sexe" name="sexe">
+                                        <option value="">Sélectionner...</option>
+                                        <option value="M" {% if current_user.sexe == 'M' %}selected{% endif %}>Masculin</option>
+                                        <option value="F" {% if current_user.sexe == 'F' %}selected{% endif %}>Féminin</option>
+                                        <option value="Autre" {% if current_user.sexe == 'Autre' %}selected{% endif %}>Autre</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="contact_urgence" class="form-label">Contact d'urgence</label>
+                                    <input type="text" class="form-control" id="contact_urgence" name="contact_urgence" 
+                                           value="{{ current_user.contact_urgence or '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Informations médicales</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="groupe_sanguin" class="form-label">Groupe sanguin</label>
+                                    <select class="form-select" id="groupe_sanguin" name="groupe_sanguin">
+                                        <option value="">Sélectionner...</option>
+                                        <option value="A+" {% if dossier.groupe_sanguin == 'A+' %}selected{% endif %}>A+</option>
+                                        <option value="A-" {% if dossier.groupe_sanguin == 'A-' %}selected{% endif %}>A-</option>
+                                        <option value="B+" {% if dossier.groupe_sanguin == 'B+' %}selected{% endif %}>B+</option>
+                                        <option value="B-" {% if dossier.groupe_sanguin == 'B-' %}selected{% endif %}>B-</option>
+                                        <option value="AB+" {% if dossier.groupe_sanguin == 'AB+' %}selected{% endif %}>AB+</option>
+                                        <option value="AB-" {% if dossier.groupe_sanguin == 'AB-' %}selected{% endif %}>AB-</option>
+                                        <option value="O+" {% if dossier.groupe_sanguin == 'O+' %}selected{% endif %}>O+</option>
+                                        <option value="O-" {% if dossier.groupe_sanguin == 'O-' %}selected{% endif %}>O-</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="electrophorese" class="form-label">Électrophorèse</label>
+                                    <input type="text" class="form-control" id="electrophorese" name="electrophorese" 
+                                           value="{{ dossier.electrophorese or '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="allergies" class="form-label">Allergies</label>
+                                    <textarea class="form-control" id="allergies" name="allergies" rows="2">{{ dossier.allergies or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">Antécédents</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="antecedents_medicaux" class="form-label">Antécédents médicaux</label>
+                                    <textarea class="form-control" id="antecedents_medicaux" name="antecedents_medicaux" rows="4">{{ dossier.antecedents_medicaux or '' }}</textarea>
+                                    <div class="form-text">Listez vos maladies chroniques, opérations, etc.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="antecedents_familiaux" class="form-label">Antécédents familiaux</label>
+                                    <textarea class="form-control" id="antecedents_familiaux" name="antecedents_familiaux" rows="4">{{ dossier.antecedents_familiaux or '' }}</textarea>
+                                    <div class="form-text">Listez les maladies héréditaires dans votre famille</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer les modifications
+                                </button>
+                                <a href="{{ url_for('consultations.dossier_medical') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Annuler
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

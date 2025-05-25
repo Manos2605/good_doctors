@@ -1,104 +1,226 @@
 {% extends "base.html" %}
 
-{% block title %}Nouvelle Consultation{% endblock %}
+{% block title %}Nouveau Rendez-vous - Meditech{% endblock %}
+
+{% block styles %}
+<style>
+    .appointment-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .doctor-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .doctor-avatar {
+        width: 80px;
+        height: 80px;
+        background: #4ecdc4;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .time-slot {
+        padding: 10px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .time-slot:hover {
+        border-color: #4ecdc4;
+        background: rgba(78, 205, 196, 0.1);
+    }
+    
+    .time-slot.selected {
+        border-color: #4ecdc4;
+        background: #4ecdc4;
+        color: white;
+    }
+    
+    .time-slot input[type="radio"] {
+        display: none;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .form-section h4 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="mb-0">Prendre rendez-vous avec {{ medecin.prenom }} {{ medecin.nom }}</h3>
-                    <p class="text-muted mb-0">
-                        {% if medecin.role == 'medecin' %}Médecin{% else %}Vétérinaire{% endif %}
-                        {% if medecin.specialite %} - {{ medecin.specialite }}{% endif %}
-                    </p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="appointment-section">
+                <h2 class="mb-4">Nouveau Rendez-vous</h2>
+                
+                <!-- Informations du médecin -->
+                <div class="doctor-info">
+                    <div class="doctor-avatar">
+                        {{ medecin.prenom[0] }}{{ medecin.nom[0] }}
+                    </div>
+                    <div>
+                        <h4 class="mb-1">Dr. {{ medecin.prenom }} {{ medecin.nom }}</h4>
+                        <p class="text-muted mb-0">{{ medecin.specialite }}</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <!-- Sélection de la date -->
-                    <div class="mb-4">
-                        <h5>Sélectionner une date</h5>
-                        <form method="GET" action="{{ url_for('consultations.nouvelle', medecin_id=medecin.id) }}" class="row g-3">
+                
+                <form method="POST" id="appointmentForm">
+                    <input type="hidden" name="medecin_id" value="{{ medecin.id }}">
+                    
+                    <!-- Date du rendez-vous -->
+                    <div class="form-section">
+                        <h4>Date du rendez-vous</h4>
+                        <div class="row g-3">
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="date" 
+                                <input type="date" class="form-control" id="date" name="date" 
                                        value="{{ date }}" min="{{ now.strftime('%Y-%m-%d') }}" required>
                             </div>
                             <div class="col-md-4">
-                                <button type="submit" class="btn btn-primary w-100">Voir les créneaux</button>
+                                <button type="button" class="btn btn-primary w-100" id="searchSlots">
+                                    <i class="fas fa-search me-2"></i>Rechercher
+                                </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
-
-                    {% if date %}
-                        {% if creneaux %}
-                            <form method="POST" action="{{ url_for('consultations.nouvelle', medecin_id=medecin.id) }}">
-                                <input type="hidden" name="medecin_id" value="{{ medecin.id }}">
-                                
-                                <!-- Sélection du créneau -->
-                                <div class="mb-4">
-                                    <h5>Choisir un créneau</h5>
-                                    <div class="row g-3">
-                                        {% for creneau in creneaux %}
-                                        <div class="col-md-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="date" 
-                                                       id="creneau_{{ creneau.id }}" 
-                                                       value="{{ creneau.date_debut.strftime('%Y-%m-%dT%H:%M') }}" required>
-                                                <label class="form-check-label" for="creneau_{{ creneau.id }}">
-                                                    {{ creneau.date_debut.strftime('%H:%M') }}
-                                                </label>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <!-- Type de consultation -->
-                                <div class="mb-4">
-                                    <h5>Type de consultation</h5>
-                                    <select class="form-select" name="type" required>
-                                        <option value="">Sélectionnez un type</option>
-                                        <option value="video">Consultation vidéo</option>
-                                        <option value="chat">Consultation par chat</option>
-                                        <option value="message">Consultation par message</option>
-                                    </select>
-                                </div>
-
-                                <!-- Description -->
-                                <div class="mb-4">
-                                    <h5>Description</h5>
-                                    <textarea class="form-control" name="description" rows="3" 
-                                              placeholder="Décrivez brièvement le motif de votre consultation"></textarea>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-success">Confirmer le rendez-vous</button>
-                                </div>
-                            </form>
-                        {% else %}
+                    
+                    <!-- Créneaux disponibles -->
+                    <div class="form-section" id="slotsSection" {% if not date %}style="display: none;"{% endif %}>
+                        <h4>Créneaux disponibles</h4>
+                        <div class="time-slots">
+                            {% for creneau in creneaux %}
+                            <label class="time-slot">
+                                <input type="radio" name="creneau_id" value="{{ creneau.id }}" required>
+                                <div>{{ creneau.date_debut.strftime('%H:%M') }}</div>
+                            </label>
+                            {% else %}
                             <div class="alert alert-info">
                                 Aucun créneau disponible pour cette date.
                             </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="alert alert-info">
-                            Veuillez sélectionner une date pour voir les créneaux disponibles.
+                            {% endfor %}
                         </div>
-                    {% endif %}
-                </div>
+                    </div>
+                    
+                    <!-- Type de consultation -->
+                    <div class="form-section" {% if not date %}style="display: none;"{% endif %}>
+                        <h4>Type de consultation</h4>
+                        <div class="mb-3">
+                            <select class="form-select" name="type" required>
+                                <option value="">Sélectionnez un type</option>
+                                <option value="cabinet">Consultation au cabinet</option>
+                                <option value="domicile">Consultation à domicile</option>
+                                <option value="video">Téléconsultation</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="form-section" {% if not date %}style="display: none;"{% endif %}>
+                        <h4>Description (optionnelle)</h4>
+                        <div class="mb-3">
+                            <textarea class="form-control" name="description" rows="3" 
+                                      placeholder="Décrivez brièvement le motif de votre consultation"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" {% if not date %}disabled{% endif %}>
+                            <i class="fas fa-calendar-check me-2"></i>Confirmer le rendez-vous
+                        </button>
+                        <a href="{{ url_for('consultations.recherche_medecin') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour à la recherche
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Définir la date minimale à aujourd'hui
-    const dateInput = document.querySelector('input[type="date"]');
+    // Gestion de la sélection des créneaux
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.addEventListener('click', function() {
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            this.classList.add('selected');
+            this.querySelector('input[type="radio"]').checked = true;
+        });
+    });
+    
+    // Validation du formulaire
+    document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+        const creneau = document.querySelector('input[name="creneau_id"]:checked');
+        const type = document.querySelector('select[name="type"]').value;
+        
+        if (!creneau) {
+            e.preventDefault();
+            alert('Veuillez sélectionner un créneau horaire');
+            return;
+        }
+        
+        if (!type) {
+            e.preventDefault();
+            alert('Veuillez sélectionner un type de consultation');
+            return;
+        }
+    });
+    
+    // Recherche des créneaux
+    document.getElementById('searchSlots').addEventListener('click', function() {
+        const date = document.getElementById('date').value;
+        if (!date) {
+            alert('Veuillez sélectionner une date');
+            return;
+        }
+        
+        // Construction correcte de l'URL avec les paramètres
+        const medecinId = "{{ medecin.id }}";
+        const baseUrl = "{{ url_for('consultations.nouvelle') }}";
+        const newUrl = `${baseUrl}?medecin_id=${medecinId}&date=${date}`;
+        window.location.href = newUrl;
+    });
+    
+    // Empêcher la sélection de dates passées
+    const dateInput = document.getElementById('date');
     const today = new Date().toISOString().split('T')[0];
     dateInput.min = today;
-});
+    
+    // Si une date est déjà sélectionnée, s'assurer qu'elle n'est pas dans le passé
+    if (dateInput.value && dateInput.value < today) {
+        dateInput.value = today;
+    }
 </script>
-{% endblock %}
 {% endblock %} 

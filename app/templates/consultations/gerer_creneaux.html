@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Gérer les Créneaux - Meditech{% endblock %}
+
+{% block styles %}
+<style>
+    .creneaux-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .creneau-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .creneau-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .creneau-date {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    
+    .creneau-heure {
+        color: #6c757d;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-disponible {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .status-reserve {
+        background: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="creneaux-section">
+                <h2 class="mb-4">Gérer les Créneaux</h2>
+                
+                <!-- Formulaire de création de créneaux -->
+                <div class="form-section">
+                    <h4 class="mb-3">Ajouter des créneaux</h4>
+                    <form method="POST" id="creneauxForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="date_debut" class="form-label">Date et heure de début</label>
+                                <input type="datetime-local" class="form-control" id="date_debut" name="date_debut" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date_fin" class="form-label">Date et heure de fin</label>
+                                <input type="datetime-local" class="form-control" id="date_fin" name="date_fin" required>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Créer les créneaux
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Liste des créneaux -->
+                <h4 class="mb-3">Créneaux existants</h4>
+                {% for creneau in creneaux %}
+                <div class="creneau-card">
+                    <div class="creneau-info">
+                        <div>
+                            <div class="creneau-date">{{ creneau.date_debut.strftime('%d/%m/%Y') }}</div>
+                            <div class="creneau-heure">{{ creneau.date_debut.strftime('%H:%M') }} - {{ creneau.date_fin.strftime('%H:%M') }}</div>
+                        </div>
+                        <span class="status-badge status-{{ creneau.statut }}">
+                            {{ creneau.statut|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+                    {% if creneau.statut == 'disponible' %}
+                    <button class="btn btn-outline-danger btn-sm" onclick="supprimerCreneau({{ creneau.id }})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Aucun créneau n'a été créé pour le moment.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Empêcher la sélection de dates passées
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('date_debut').min = now.toISOString().slice(0, 16);
+    document.getElementById('date_fin').min = now.toISOString().slice(0, 16);
+    
+    // Validation du formulaire
+    document.getElementById('creneauxForm').addEventListener('submit', function(e) {
+        const dateDebut = new Date(document.getElementById('date_debut').value);
+        const dateFin = new Date(document.getElementById('date_fin').value);
+        
+        if (dateFin <= dateDebut) {
+            e.preventDefault();
+            alert('La date de fin doit être postérieure à la date de début');
+        }
+    });
+    
+    // Suppression d'un créneau
+    function supprimerCreneau(id) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce créneau ?')) {
+            fetch(`/medecin/creneaux/${id}/supprimer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Erreur lors de la suppression');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression');
+            });
+        }
+    }
+</script>
+{% endblock %} 

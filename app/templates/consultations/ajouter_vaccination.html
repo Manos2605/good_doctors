@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Ajouter une vaccination</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nom_vaccin" class="form-label">Nom du vaccin</label>
+                                    <input type="text" class="form-control" id="nom_vaccin" name="nom_vaccin" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="date_vaccination" class="form-label">Date de vaccination</label>
+                                    <input type="date" class="form-control" id="date_vaccination" name="date_vaccination" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="date_rappel" class="form-label">Date de rappel</label>
+                                    <input type="date" class="form-control" id="date_rappel" name="date_rappel">
+                                    <div class="form-text">Laissez vide si aucun rappel n'est prévu</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="lot" class="form-label">Numéro de lot</label>
+                                    <input type="text" class="form-control" id="lot" name="lot">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="4"></textarea>
+                                    <div class="form-text">Informations complémentaires (réactions, observations, etc.)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                                <a href="{{ url_for('consultations.vaccinations') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Annuler
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Définir la date minimale pour la date de vaccination (aujourd'hui)
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date_vaccination').max = today;
+    
+    // Définir la date minimale pour la date de rappel (date de vaccination)
+    document.getElementById('date_vaccination').addEventListener('change', function() {
+        document.getElementById('date_rappel').min = this.value;
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

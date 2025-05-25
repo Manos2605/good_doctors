@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Good Doctors{% endblock %}</title>
+    <title>{% block title %}Meditech{% endblock %}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/navbar.css') }}" rel="stylesheet">
@@ -18,7 +18,7 @@
                 <div class="logo-icon">
                     <i class="fas fa-plus"></i>
                 </div>
-                Good Doctors
+                Meditech
             </a>
             
             <!-- Bouton toggle pour mobile -->
@@ -29,35 +29,27 @@
             <!-- Menu de navigation -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
-                            <i class="fas fa-home me-1"></i>
-                            Accueil
-                        </a>
-                    </li>
                     {% if current_user.is_authenticated %}
+                        {% if current_user.role == 'patient' %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'consultations.index' %}active{% endif %}" href="{{ url_for('consultations.index') }}">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Mes rendez-vous
+                            <a class="nav-link" href="{{ url_for('consultations.carnet_medical') }}">
+                                <i class="fas fa-book-medical me-1"></i>Carnet du patient
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('consultations.medicaments') }}">
+                                <i class="fas fa-pills me-1"></i>Vente des médicaments
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link notification-badge {% if request.endpoint == 'consultations.index' %}active{% endif %}" href="{{ url_for('consultations.index') }}">
-                                <i class="fas fa-envelope me-1"></i>
-                                Messages
+                            <a class="nav-link" href="{{ url_for('consultations.index') }}">
+                                <i class="fas fa-calendar-check me-1"></i>Mes consultations
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'consultations.index' %}active{% endif %}" href="{{ url_for('consultations.index') }}">
-                                <i class="fas fa-file-medical me-1"></i>
-                                Mon dossier
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'consultations.recherche_medecin' %}active{% endif %}" href="{{ url_for('consultations.recherche_medecin') }}">
-                                <i class="fas fa-user-md me-1"></i>
-                                Médecins
+                            <a class="nav-link" href="{{ url_for('consultations.recherche_medecin') }}">
+                                <i class="fas fa-user-md me-1"></i>Prendre rendez-vous
                             </a>
                         </li>
                     {% endif %}

@@ -1,8 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
-from app.models import Consultation, RendezVous, User, Message
+from app.models import (
+    Consultation, RendezVous, User, Message, DossierMedical,
+    Vaccination, Examen, Traitement, DocumentMedical, SuiviPathologie,
+    Ordonnance, Medicament
+)
 from app import db
+import json
 
 bp = Blueprint('consultations', __name__)
 
@@ -18,18 +23,22 @@ def index():
 @bp.route('/consultations/nouvelle', methods=['GET', 'POST'])
 @login_required
 def nouvelle():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+        
     if request.method == 'GET':
         medecin_id = request.args.get('medecin_id')
         date = request.args.get('date')
         
         if not medecin_id:
             flash('Médecin non spécifié', 'error')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('consultations.recherche_medecin'))
             
         medecin = User.query.get_or_404(medecin_id)
         if medecin.role not in ['medecin', 'veterinaire']:
             flash('Utilisateur non autorisé', 'error')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('consultations.recherche_medecin'))
             
         creneaux = []
         if date:
@@ -43,6 +52,7 @@ def nouvelle():
             ).order_by(RendezVous.date_debut).all()
             
         return render_template('consultations/nouvelle.html', 
+                             title='Nouveau Rendez-vous',
                              medecin=medecin,
                              date=date,
                              creneaux=creneaux,
@@ -53,26 +63,20 @@ def nouvelle():
         date_str = request.form.get('date')
         type_consultation = request.form.get('type')
         description = request.form.get('description')
+        creneau_id = request.form.get('creneau_id')
         
-        if not all([medecin_id, date_str, type_consultation]):
+        if not all([medecin_id, date_str, type_consultation, creneau_id]):
             flash('Tous les champs obligatoires doivent être remplis', 'error')
             return redirect(url_for('consultations.nouvelle', medecin_id=medecin_id))
             
         medecin = User.query.get_or_404(medecin_id)
         if medecin.role not in ['medecin', 'veterinaire']:
             flash('Utilisateur non autorisé', 'error')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('consultations.recherche_medecin'))
             
-        date_debut = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
-        
         # Vérifier si le créneau est toujours disponible
-        rendez_vous = RendezVous.query.filter(
-            RendezVous.medecin_id == medecin_id,
-            RendezVous.date_debut == date_debut,
-            RendezVous.statut == 'disponible'
-        ).first()
-        
-        if not rendez_vous:
+        rendez_vous = RendezVous.query.get_or_404(creneau_id)
+        if rendez_vous.statut != 'disponible' or rendez_vous.medecin_id != int(medecin_id):
             flash('Ce créneau n\'est plus disponible', 'error')
             return redirect(url_for('consultations.nouvelle', medecin_id=medecin_id))
             
@@ -80,7 +84,7 @@ def nouvelle():
         consultation = Consultation(
             patient_id=current_user.id,
             medecin_id=medecin_id,
-            date=date_debut,
+            date=rendez_vous.date_debut,
             duree=30,  # Durée fixe de 30 minutes
             type=type_consultation,
             description=description,
@@ -95,7 +99,7 @@ def nouvelle():
             db.session.add(consultation)
             db.session.commit()
             flash('Rendez-vous pris avec succès', 'success')
-            return redirect(url_for('consultations.detail', id=consultation.id))
+            return redirect(url_for('consultations.index'))
         except Exception as e:
             db.session.rollback()
             flash('Une erreur est survenue lors de la prise de rendez-vous', 'error')
@@ -301,17 +305,21 @@ def recherche_medecin():
             # Vérifier les rendez-vous existants pour cette date
             rendez_vous = RendezVous.query.filter(
                 RendezVous.medecin_id == pro.id,
-                RendezVous.date == date_obj
-            ).all()
+                RendezVous.date_debut >= date_obj,
+                RendezVous.date_debut < date_obj + timedelta(days=1),
+                RendezVous.statut == 'reserve'
+            ).count()
             
             # Vérifier les consultations existantes pour cette date
             consultations = Consultation.query.filter(
                 Consultation.medecin_id == pro.id,
-                Consultation.date == date_obj
-            ).all()
+                Consultation.date >= date_obj,
+                Consultation.date < date_obj + timedelta(days=1),
+                Consultation.statut == 'planifiee'
+            ).count()
             
             # Si moins de 8 rendez-vous/consultations pour cette date, le professionnel est disponible
-            if len(rendez_vous) + len(consultations) < 8:
+            if rendez_vous + consultations < 8:
                 professionnels_disponibles.append(pro)
                 
         professionnels = professionnels_disponibles
@@ -413,9 +421,9 @@ def urgence():
                          title='Urgence',
                          medecins=medecins_urgence)
 
-@bp.route('/ordonnance')
+@bp.route('/ordonnances')
 @login_required
-def ordonnance():
+def liste_ordonnances():
     if current_user.role != 'patient':
         flash('Accès non autorisé.', 'danger')
         return redirect(url_for('main.index'))
@@ -438,11 +446,12 @@ def documents():
         return redirect(url_for('main.index'))
     
     # Récupérer les documents médicaux du patient
-    documents = Consultation.query.filter(
-        Consultation.patient_id == current_user.id,
-        Consultation.documents != None
-    ).order_by(Consultation.date.desc()).all()
+    dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
+    if not dossier:
+        flash('Dossier médical non trouvé.', 'danger')
+        return redirect(url_for('consultations.dossier_medical'))
     
+    documents = DocumentMedical.query.filter_by(dossier_id=dossier.id).order_by(DocumentMedical.date_emission.desc()).all()
     return render_template('consultations/documents.html',
                          title='Documents Médicaux',
                          documents=documents)
@@ -515,4 +524,317 @@ def donner_avis(consultation_id):
     }
     
     db.session.commit()
-    return jsonify({'success': True}) 
+    return jsonify({'success': True})
+
+@bp.route('/dossier-medical')
+@login_required
+def dossier_medical():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
+    if not dossier:
+        dossier = DossierMedical(patient_id=current_user.id)
+        db.session.add(dossier)
+        db.session.commit()
+    
+    return render_template('consultations/dossier_medical.html',
+                         title='Dossier Médical',
+                         dossier=dossier)
+
+@bp.route('/dossier-medical/modifier', methods=['GET', 'POST'])
+@login_required
+def modifier_dossier_medical():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
+    if not dossier:
+        dossier = DossierMedical(patient_id=current_user.id)
+        db.session.add(dossier)
+    
+    if request.method == 'POST':
+        dossier.groupe_sanguin = request.form.get('groupe_sanguin')
+        dossier.electrophorese = request.form.get('electrophorese')
+        dossier.antecedents_medicaux = request.form.get('antecedents_medicaux')
+        dossier.antecedents_familiaux = request.form.get('antecedents_familiaux')
+        dossier.allergies = request.form.get('allergies')
+        
+        db.session.commit()
+        flash('Dossier médical mis à jour avec succès.', 'success')
+        return redirect(url_for('consultations.dossier_medical'))
+    
+    return render_template('consultations/modifier_dossier_medical.html',
+                         title='Modifier Dossier Médical',
+                         dossier=dossier)
+
+@bp.route('/vaccinations')
+@login_required
+def vaccinations():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
+    if not dossier:
+        flash('Dossier médical non trouvé.', 'danger')
+        return redirect(url_for('consultations.dossier_medical'))
+    
+    vaccinations = Vaccination.query.filter_by(dossier_id=dossier.id).order_by(Vaccination.date_vaccination.desc()).all()
+    return render_template('consultations/vaccinations.html',
+                         title='Vaccinations',
+                         vaccinations=vaccinations)
+
+@bp.route('/vaccinations/ajouter', methods=['GET', 'POST'])
+@login_required
+def ajouter_vaccination():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    if request.method == 'POST':
+        dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
+        if not dossier:
+            flash('Dossier médical non trouvé.', 'danger')
+            return redirect(url_for('consultations.dossier_medical'))
+        
+        vaccination = Vaccination(
+            dossier_id=dossier.id,
+            nom_vaccin=request.form.get('nom_vaccin'),
+            date_vaccination=datetime.strptime(request.form.get('date_vaccination'), '%Y-%m-%d').date(),
+            date_rappel=datetime.strptime(request.form.get('date_rappel'), '%Y-%m-%d').date() if request.form.get('date_rappel') else None,
+            lot=request.form.get('lot'),
+            notes=request.form.get('notes')
+        )
+        
+        db.session.add(vaccination)
+        db.session.commit()
+        flash('Vaccination ajoutée avec succès.', 'success')
+        return redirect(url_for('consultations.vaccinations'))
+    
+    return render_template('consultations/ajouter_vaccination.html',
+                         title='Ajouter Vaccination')
+
+@bp.route('/medicaments')
+@login_required
+def medicaments():
+    medicaments = Medicament.query.all()
+    return render_template('consultations/medicaments.html',
+                         title='Médicaments',
+                         medicaments=medicaments)
+
+@bp.route('/medicaments/ajouter', methods=['GET', 'POST'])
+@login_required
+def ajouter_medicament():
+    if current_user.role not in ['admin', 'medecin']:
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    if request.method == 'POST':
+        medicament = Medicament(
+            nom=request.form.get('nom'),
+            type=request.form.get('type'),
+            description=request.form.get('description'),
+            prix=float(request.form.get('prix')),
+            stock=int(request.form.get('stock')),
+            categorie=request.form.get('categorie'),
+            effets_secondaires=request.form.get('effets_secondaires'),
+            contre_indications=request.form.get('contre_indications'),
+            date_expiration=datetime.strptime(request.form.get('date_expiration'), '%Y-%m-%d').date() if request.form.get('date_expiration') else None
+        )
+        
+        # Gestion de l'image
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                medicament.image = filename
+        
+        db.session.add(medicament)
+        db.session.commit()
+        flash('Médicament ajouté avec succès.', 'success')
+        return redirect(url_for('consultations.medicaments'))
+    
+    return render_template('consultations/ajouter_medicament.html',
+                         title='Ajouter Médicament')
+
+@bp.route('/ordonnance/<int:consultation_id>', methods=['GET', 'POST'])
+@login_required
+def ordonnance(consultation_id):
+    consultation = Consultation.query.get_or_404(consultation_id)
+    
+    if current_user.role not in ['medecin', 'admin'] or current_user.id != consultation.medecin_id:
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    if request.method == 'POST':
+        medicaments = request.form.getlist('medicaments[]')
+        posologies = request.form.getlist('posologies[]')
+        
+        medicaments_list = []
+        for med, poso in zip(medicaments, posologies):
+            medicaments_list.append({
+                'medicament': med,
+                'posologie': poso
+            })
+        
+        ordonnance = Ordonnance(
+            consultation_id=consultation_id,
+            medicaments=json.dumps(medicaments_list),
+            instructions=request.form.get('instructions'),
+            duree_validite=int(request.form.get('duree_validite'))
+        )
+        
+        db.session.add(ordonnance)
+        db.session.commit()
+        flash('Ordonnance créée avec succès.', 'success')
+        return redirect(url_for('consultations.consultation', id=consultation_id))
+    
+    medicaments = Medicament.query.all()
+    return render_template('consultations/ordonnance.html',
+                         title='Créer Ordonnance',
+                         consultation=consultation,
+                         medicaments=medicaments)
+
+@bp.route('/carnet-medical')
+@login_required
+def carnet_medical():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
+    if not dossier:
+        dossier = DossierMedical(patient_id=current_user.id)
+        db.session.add(dossier)
+        db.session.commit()
+    
+    # Récupérer les vaccinations
+    vaccinations = Vaccination.query.filter_by(dossier_id=dossier.id).order_by(Vaccination.date_vaccination.desc()).all()
+    
+    # Récupérer les consultations
+    consultations = Consultation.query.filter_by(patient_id=current_user.id).order_by(Consultation.date.desc()).all()
+    
+    # Récupérer les traitements en cours
+    traitements = Traitement.query.filter_by(dossier_id=dossier.id, statut='en_cours').all()
+    
+    # Récupérer les documents médicaux
+    documents = DocumentMedical.query.filter_by(dossier_id=dossier.id).order_by(DocumentMedical.date_emission.desc()).all()
+    
+    # Récupérer les suivis de pathologies
+    suivis = SuiviPathologie.query.filter_by(dossier_id=dossier.id).all()
+    
+    return render_template('consultations/carnet_medical.html',
+                         title='Carnet Médical',
+                         dossier=dossier,
+                         vaccinations=vaccinations,
+                         consultations=consultations,
+                         traitements=traitements,
+                         documents=documents,
+                         suivis=suivis)
+
+@bp.route('/medecin/creneaux', methods=['GET', 'POST'])
+@login_required
+def gerer_creneaux():
+    if current_user.role not in ['medecin', 'veterinaire']:
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+        
+    if request.method == 'POST':
+        date_debut = datetime.strptime(request.form.get('date_debut'), '%Y-%m-%dT%H:%M')
+        date_fin = datetime.strptime(request.form.get('date_fin'), '%Y-%m-%dT%H:%M')
+        
+        # Créer les créneaux de 30 minutes
+        creneaux = []
+        current_time = date_debut
+        while current_time < date_fin:
+            creneau = RendezVous(
+                date_debut=current_time,
+                date_fin=current_time + timedelta(minutes=30),
+                medecin_id=current_user.id,
+                statut='disponible'
+            )
+            creneaux.append(creneau)
+            current_time += timedelta(minutes=30)
+            
+        try:
+            db.session.add_all(creneaux)
+            db.session.commit()
+            flash(f'{len(creneaux)} créneaux créés avec succès', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Erreur lors de la création des créneaux', 'error')
+            
+        return redirect(url_for('consultations.gerer_creneaux'))
+        
+    # Récupérer les créneaux existants
+    creneaux = RendezVous.query.filter_by(medecin_id=current_user.id).order_by(RendezVous.date_debut).all()
+    
+    return render_template('consultations/gerer_creneaux.html',
+                         title='Gérer les créneaux',
+                         creneaux=creneaux)
+
+@bp.route('/medecin/creneaux/<int:id>/supprimer', methods=['POST'])
+@login_required
+def supprimer_creneau(id):
+    if current_user.role not in ['medecin', 'veterinaire']:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    creneau = RendezVous.query.get_or_404(id)
+    if creneau.medecin_id != current_user.id:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    if creneau.statut != 'disponible':
+        return jsonify({'error': 'Impossible de supprimer un créneau réservé'}), 400
+        
+    try:
+        db.session.delete(creneau)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Erreur lors de la suppression'}), 500
+
+@bp.route('/creer-medecins-test')
+def creer_medecins_test():
+    # Vérifier si les médecins existent déjà
+    medecin1 = User.query.filter_by(email='dr.martin@meditech.com').first()
+    medecin2 = User.query.filter_by(email='dr.bernard@meditech.com').first()
+    
+    if not medecin1:
+        medecin1 = User(
+            email='dr.martin@meditech.com',
+            nom='Martin',
+            prenom='Sophie',
+            role='medecin',
+            specialite='Médecine générale',
+            password='password123',
+            telephone='0123456789',
+            disponible_urgence=True
+        )
+        db.session.add(medecin1)
+    
+    if not medecin2:
+        medecin2 = User(
+            email='dr.bernard@meditech.com',
+            nom='Bernard',
+            prenom='Pierre',
+            role='medecin',
+            specialite='Cardiologie',
+            password='password123',
+            telephone='0987654321',
+            disponible_urgence=True
+        )
+        db.session.add(medecin2)
+    
+    try:
+        db.session.commit()
+        flash('Médecins de test créés avec succès', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Erreur lors de la création des médecins de test', 'error')
+    
+    return redirect(url_for('consultations.recherche_medecin')) 

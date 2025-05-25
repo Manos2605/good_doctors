@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Ajouter un médicament</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nom" class="form-label">Nom du médicament</label>
+                                    <input type="text" class="form-control" id="nom" name="nom" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="type" class="form-label">Type</label>
+                                    <select class="form-select" id="type" name="type" required>
+                                        <option value="africain">Médicament africain</option>
+                                        <option value="moderne">Médicament moderne</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="categorie" class="form-label">Catégorie thérapeutique</label>
+                                    <input type="text" class="form-control" id="categorie" name="categorie" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="prix" class="form-label">Prix (€)</label>
+                                    <input type="number" class="form-control" id="prix" name="prix" step="0.01" min="0" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="stock" class="form-label">Stock</label>
+                                    <input type="number" class="form-control" id="stock" name="stock" min="0" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="effets_secondaires" class="form-label">Effets secondaires</label>
+                                    <textarea class="form-control" id="effets_secondaires" name="effets_secondaires" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="contre_indications" class="form-label">Contre-indications</label>
+                                    <textarea class="form-control" id="contre_indications" name="contre_indications" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="date_expiration" class="form-label">Date d'expiration</label>
+                                    <input type="date" class="form-control" id="date_expiration" name="date_expiration">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Image du médicament</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                                <a href="{{ url_for('consultations.medicaments') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Annuler
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

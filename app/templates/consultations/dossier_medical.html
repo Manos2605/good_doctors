@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Dossier Médical</h1>
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Informations Personnelles</h5>
+                    <a href="{{ url_for('consultations.modifier_dossier_medical') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nom:</strong> {{ current_user.nom }}</p>
+                            <p><strong>Prénom:</strong> {{ current_user.prenom }}</p>
+                            <p><strong>Date de naissance:</strong> {{ current_user.date_naissance.strftime('%d/%m/%Y') if current_user.date_naissance else 'Non renseigné' }}</p>
+                            <p><strong>Sexe:</strong> {{ current_user.sexe or 'Non renseigné' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Adresse:</strong> {{ current_user.adresse or 'Non renseigné' }}</p>
+                            <p><strong>Téléphone:</strong> {{ current_user.telephone or 'Non renseigné' }}</p>
+                            <p><strong>Contact d'urgence:</strong> {{ current_user.contact_urgence or 'Non renseigné' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Informations Médicales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Groupe sanguin:</strong> {{ dossier.groupe_sanguin or 'Non renseigné' }}</p>
+                            <p><strong>Électrophorèse:</strong> {{ dossier.electrophorese or 'Non renseigné' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Allergies:</strong> {{ dossier.allergies or 'Aucune allergie connue' }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>Antécédents médicaux</h6>
+                            <p>{{ dossier.antecedents_medicaux or 'Aucun antécédent médical' }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>Antécédents familiaux</h6>
+                            <p>{{ dossier.antecedents_familiaux or 'Aucun antécédent familial' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Vaccinations</h5>
+                    <a href="{{ url_for('consultations.ajouter_vaccination') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if dossier.vaccinations.count() > 0 %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Vaccin</th>
+                                        <th>Date</th>
+                                        <th>Rappel</th>
+                                        <th>Lot</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vaccin in dossier.vaccinations %}
+                                    <tr>
+                                        <td>{{ vaccin.nom_vaccin }}</td>
+                                        <td>{{ vaccin.date_vaccination.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ vaccin.date_rappel.strftime('%d/%m/%Y') if vaccin.date_rappel else 'Non prévu' }}</td>
+                                        <td>{{ vaccin.lot or 'Non renseigné' }}</td>
+                                        <td>{{ vaccin.notes or '' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucune vaccination enregistrée</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Traitements en cours</h5>
+                </div>
+                <div class="card-body">
+                    {% if dossier.traitements.count() > 0 %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Médicament</th>
+                                        <th>Posologie</th>
+                                        <th>Date début</th>
+                                        <th>Date fin</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for traitement in dossier.traitements %}
+                                    <tr>
+                                        <td>{{ traitement.medicament }}</td>
+                                        <td>{{ traitement.posologie }}</td>
+                                        <td>{{ traitement.date_debut.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ traitement.date_fin.strftime('%d/%m/%Y') if traitement.date_fin else 'En cours' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if traitement.statut == 'en_cours' else 'secondary' }}">
+                                                {{ traitement.statut }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucun traitement en cours</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Documents médicaux</h5>
+                </div>
+                <div class="card-body">
+                    {% if dossier.documents.count() > 0 %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in dossier.documents %}
+                                    <tr>
+                                        <td>{{ doc.type_document }}</td>
+                                        <td>{{ doc.date_emission.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ doc.description or '' }}</td>
+                                        <td>
+                                            {% if doc.fichier %}
+                                            <a href="{{ url_for('static', filename='uploads/' + doc.fichier) }}" class="btn btn-primary btn-sm" target="_blank">
+                                                <i class="fas fa-download"></i> Télécharger
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucun document médical</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
