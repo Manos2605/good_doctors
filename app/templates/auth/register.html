@@ -1,96 +1,356 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container mt-5">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Good Doctors</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --teal-color: #5cb3a8;
+            --light-teal: #b8e0dc;
+            --dark-blue: #2c3e50;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--light-teal) 0%, #e8f5f3 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .auth-container {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            padding: 3rem;
+            margin: 2rem 0;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-icon {
+            background-color: var(--teal-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(92, 179, 168, 0.3);
+        }
+        
+        .logo-text {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin: 0;
+        }
+        
+        .auth-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--teal-color);
+            box-shadow: 0 0 0 0.2rem rgba(92, 179, 168, 0.25);
+        }
+        
+        .form-floating > label {
+            color: #6c757d;
+            padding-left: 1.2rem;
+        }
+        
+        .btn-auth {
+            background-color: var(--teal-color);
+            border: none;
+            color: white;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 15px;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-auth:hover {
+            background-color: var(--dark-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+            color: #6c757d;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #e9ecef;
+            z-index: 1;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .btn-social {
+            border: 2px solid #e9ecef;
+            color: var(--dark-blue);
+            padding: 0.8rem;
+            border-radius: 15px;
+            width: 100%;
+            margin-bottom: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        
+        .btn-social:hover {
+            border-color: var(--teal-color);
+            color: var(--teal-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-social i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+        }
+        
+        .auth-footer a {
+            color: var(--teal-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-footer a:hover {
+            color: var(--dark-blue);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .form-row .form-floating {
+            flex: 1;
+        }
+        
+        .terms-check {
+            margin-bottom: 1.5rem;
+        }
+        
+        .terms-check .form-check-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .terms-check a {
+            color: var(--teal-color);
+            text-decoration: none;
+        }
+        
+        .terms-check a:hover {
+            color: var(--dark-blue);
+        }
+        
+        /* Animation d'entrée */
+        .auth-container {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 576px) {
+            .auth-container {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">Inscription</h3>
+            <div class="col-12">
+                <div class="auth-container mx-auto">
+                    <div class="logo-container">
+                        <div class="logo-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <h1 class="logo-text">Good Doctors</h1>
                 </div>
-                <div class="card-body">
+                    
+                    <h2 class="auth-title">Créer un compte</h2>
+                    
                     <form method="POST" action="{{ url_for('auth.register') }}">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="prenom" class="form-label">Prénom</label>
-                                <input type="text" class="form-control" id="prenom" name="prenom" required>
+                        <div class="form-row">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénom" required>
+                                <label for="prenom">Prénom</label>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="nom" class="form-label">Nom</label>
-                                <input type="text" class="form-control" id="nom" name="nom" required>
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="nom" name="nom" placeholder="Nom" required>
+                                <label for="nom">Nom</label>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="form-floating">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                            <label for="email">Adresse email</label>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Type de compte</label>
-                            <select class="form-select" id="role" name="role" required>
-                                <option value="">Sélectionnez votre rôle</option>
-                                <option value="patient">Patient</option>
-                                <option value="medecin">Médecin</option>
-                                <option value="veterinaire">Vétérinaire</option>
-                            </select>
+                        <div class="form-floating">
+                            <input type="tel" class="form-control" id="telephone" name="telephone" placeholder="Téléphone" required>
+                            <label for="telephone">Numéro de téléphone</label>
                         </div>
 
-                        <div id="specialite-field" class="mb-3" style="display: none;">
-                            <label for="specialite" class="form-label">Spécialité</label>
-                            <input type="text" class="form-control" id="specialite" name="specialite">
+                        <input type="hidden" name="role" value="patient">
+
+                        <div class="form-floating">
+                            <input type="date" class="form-control" id="date_naissance" name="date_naissance" required>
+                            <label for="date_naissance">Date de naissance</label>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="telephone" class="form-label">Téléphone</label>
-                            <input type="tel" class="form-control" id="telephone" name="telephone">
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" required>
+                            <label for="password">Mot de passe</label>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="adresse" class="form-label">Adresse</label>
-                            <textarea class="form-control" id="adresse" name="adresse" rows="2"></textarea>
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirmer le mot de passe" required>
+                            <label for="confirm_password">Confirmer le mot de passe</label>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mot de passe</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-floating">
+                            <textarea class="form-control" id="adresse" name="adresse" placeholder="Adresse" required></textarea>
+                            <label for="adresse">Adresse</label>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Confirmer le mot de passe</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        <div class="terms-check">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="acceptTerms" required>
+                                <label class="form-check-label" for="acceptTerms">
+                                    J'accepte les <a href="{{ url_for('main.legal') }}">Conditions d'utilisation</a> et la <a href="{{ url_for('main.legal') }}">Politique de confidentialité</a>
+                                </label>
+                            </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">S'inscrire</button>
-                        </div>
+                        <button type="submit" class="btn btn-auth">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Créer mon compte
+                        </button>
                     </form>
-                </div>
-                <div class="card-footer text-center">
-                    <p class="mb-0">Vous avez déjà un compte ? <a href="{{ url_for('auth.login') }}">Se connecter</a></p>
+                    
+                    <div class="divider">
+                        <span>ou s'inscrire avec</span>
+                    </div>
+                    
+                    <a href="#" class="btn-social">
+                        <i class="fab fa-google" style="color: #db4437;"></i>
+                        Google
+                    </a>
+                    
+                    <a href="#" class="btn-social">
+                        <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
+                        Facebook
+                    </a>
+                    
+                    <div class="auth-footer">
+                        Déjà un compte ? 
+                        <a href="{{ url_for('auth.login') }}">Se connecter</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const roleSelect = document.getElementById('role');
-    const specialiteField = document.getElementById('specialite-field');
-    const specialiteInput = document.getElementById('specialite');
-
-    roleSelect.addEventListener('change', function() {
-        if (this.value === 'medecin' || this.value === 'veterinaire') {
-            specialiteField.style.display = 'block';
-            specialiteInput.required = true;
-        } else {
-            specialiteField.style.display = 'none';
-            specialiteInput.required = false;
-        }
+        // Animation des champs au focus
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
     });
 });
+
+        // Gestion du champ spécialité
+        document.getElementById('role').addEventListener('change', function() {
+            const specialiteField = document.querySelector('.specialite-field');
+            if (this.value === 'medecin' || this.value === 'veterinaire') {
+                specialiteField.style.display = 'block';
+                specialiteField.querySelector('input').required = true;
+            } else {
+                specialiteField.style.display = 'none';
+                specialiteField.querySelector('input').required = false;
+            }
+        });
 </script>
-{% endblock %}
-{% endblock %} 
+</body>
+</html> 

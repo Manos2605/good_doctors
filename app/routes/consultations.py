@@ -320,4 +320,199 @@ def recherche_medecin():
                          professionnels=professionnels,
                          specialite=specialite,
                          date=date,
-                         now=datetime.now()) 
+                         now=datetime.now())
+
+@bp.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+        
+    try:
+        # Récupérer la dernière consultation du patient
+        last_consultation = Consultation.query.filter_by(patient_id=current_user.id).order_by(Consultation.date.desc()).first()
+        
+        # Récupérer les consultations à venir
+        upcoming_consultations = Consultation.query.filter(
+            Consultation.patient_id == current_user.id,
+            Consultation.date >= datetime.now(),
+            Consultation.statut == 'planifiee'
+        ).order_by(Consultation.date).all()
+        
+        # Récupérer l'historique des consultations
+        past_consultations = Consultation.query.filter(
+            Consultation.patient_id == current_user.id,
+            Consultation.date < datetime.now()
+        ).order_by(Consultation.date.desc()).limit(5).all()
+        
+        # Préparer les données pour le template
+        dashboard_data = {
+            'last_consultation': {
+                'date': last_consultation.date.strftime('%d %B %Y') if last_consultation else 'Aucune consultation',
+                'medecin': f"{last_consultation.medecin.prenom} {last_consultation.medecin.nom}" if last_consultation and last_consultation.medecin else None,
+                'type': last_consultation.type if last_consultation else None,
+                'statut': last_consultation.statut if last_consultation else None
+            } if last_consultation else None,
+            'upcoming_consultations': [{
+                'id': c.id,
+                'date': c.date.strftime('%d %B %Y %H:%M'),
+                'medecin': f"{c.medecin.prenom} {c.medecin.nom}",
+                'type': c.type,
+                'statut': c.statut
+            } for c in upcoming_consultations] if upcoming_consultations else [],
+            'past_consultations': [{
+                'id': c.id,
+                'date': c.date.strftime('%d %B %Y %H:%M'),
+                'medecin': f"{c.medecin.prenom} {c.medecin.nom}",
+                'type': c.type,
+                'statut': c.statut
+            } for c in past_consultations] if past_consultations else []
+        }
+        
+        return render_template('patient/dashboard.html', 
+                             title='Tableau de bord',
+                             data=dashboard_data)
+    except Exception as e:
+        flash('Une erreur est survenue lors du chargement du tableau de bord.', 'danger')
+        return redirect(url_for('main.index'))
+
+@bp.route('/video_consultation')
+@login_required
+def video_consultation():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Récupérer les consultations vidéo à venir
+    consultations_video = Consultation.query.filter(
+        Consultation.patient_id == current_user.id,
+        Consultation.type == 'video',
+        Consultation.date >= datetime.now(),
+        Consultation.statut == 'planifiee'
+    ).order_by(Consultation.date).all()
+    
+    return render_template('consultations/video_consultation.html',
+                         title='Consultation Vidéo',
+                         consultations=consultations_video)
+
+@bp.route('/urgence')
+@login_required
+def urgence():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Récupérer les médecins disponibles en urgence
+    medecins_urgence = User.query.filter(
+        User.role.in_(['medecin', 'veterinaire']),
+        User.disponible_urgence == True
+    ).all()
+    
+    return render_template('consultations/urgence.html',
+                         title='Urgence',
+                         medecins=medecins_urgence)
+
+@bp.route('/ordonnance')
+@login_required
+def ordonnance():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Récupérer les ordonnances du patient
+    ordonnances = Consultation.query.filter(
+        Consultation.patient_id == current_user.id,
+        Consultation.ordonnance != None
+    ).order_by(Consultation.date.desc()).all()
+    
+    return render_template('consultations/ordonnance.html',
+                         title='Ordonnances',
+                         ordonnances=ordonnances)
+
+@bp.route('/documents')
+@login_required
+def documents():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Récupérer les documents médicaux du patient
+    documents = Consultation.query.filter(
+        Consultation.patient_id == current_user.id,
+        Consultation.documents != None
+    ).order_by(Consultation.date.desc()).all()
+    
+    return render_template('consultations/documents.html',
+                         title='Documents Médicaux',
+                         documents=documents)
+
+@bp.route('/ressources')
+@login_required
+def ressources():
+    # Récupérer les ressources éducatives
+    ressources = {
+        'articles': [
+            {'titre': 'Bien-être et santé', 'categorie': 'Santé générale'},
+            {'titre': 'Nutrition équilibrée', 'categorie': 'Nutrition'},
+            {'titre': 'Activité physique', 'categorie': 'Sport'}
+        ],
+        'videos': [
+            {'titre': 'Exercices de relaxation', 'categorie': 'Bien-être'},
+            {'titre': 'Conseils nutritionnels', 'categorie': 'Nutrition'}
+        ]
+    }
+    
+    return render_template('consultations/ressources.html',
+                         title='Ressources Éducatives',
+                         ressources=ressources)
+
+@bp.route('/avis')
+@login_required
+def avis():
+    if current_user.role != 'patient':
+        flash('Accès non autorisé.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Récupérer les consultations terminées pour lesquelles l'avis n'a pas encore été donné
+    consultations_a_evaluer = Consultation.query.filter(
+        Consultation.patient_id == current_user.id,
+        Consultation.statut == 'terminee',
+        Consultation.avis == None
+    ).order_by(Consultation.date.desc()).all()
+    
+    # Récupérer les avis déjà donnés
+    avis_donnes = Consultation.query.filter(
+        Consultation.patient_id == current_user.id,
+        Consultation.avis != None
+    ).order_by(Consultation.date.desc()).all()
+    
+    return render_template('consultations/avis.html',
+                         title='Avis & Évaluations',
+                         consultations_a_evaluer=consultations_a_evaluer,
+                         avis_donnes=avis_donnes)
+
+@bp.route('/avis/<int:consultation_id>', methods=['POST'])
+@login_required
+def donner_avis(consultation_id):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+    
+    consultation = Consultation.query.get_or_404(consultation_id)
+    if consultation.patient_id != current_user.id:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+    
+    note = request.form.get('note')
+    commentaire = request.form.get('commentaire')
+    
+    if not note or not commentaire:
+        return jsonify({'error': 'Note et commentaire requis'}), 400
+    
+    consultation.avis = {
+        'note': int(note),
+        'commentaire': commentaire,
+        'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    db.session.commit()
+    return jsonify({'success': True}) 

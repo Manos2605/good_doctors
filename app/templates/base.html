@@ -3,58 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - Good Doctors</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>{% block title %}Good Doctors{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/navbar.css') }}" rel="stylesheet">
+    {% block styles %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('consultations.index') }}">Good Doctors</a>
+            <!-- Logo et nom -->
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <div class="logo-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                Good Doctors
+            </a>
+            
+            <!-- Bouton toggle pour mobile -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Menu de navigation -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home me-1"></i>
+                            Accueil
+                        </a>
+                    </li>
                     {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('consultations.index') }}">Consultations</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('consultations.nouvelle') }}">Nouvelle Consultation</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'consultations.index' %}active{% endif %}" href="{{ url_for('consultations.index') }}">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Mes rendez-vous
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link notification-badge {% if request.endpoint == 'consultations.index' %}active{% endif %}" href="{{ url_for('consultations.index') }}">
+                                <i class="fas fa-envelope me-1"></i>
+                                Messages
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'consultations.index' %}active{% endif %}" href="{{ url_for('consultations.index') }}">
+                                <i class="fas fa-file-medical me-1"></i>
+                                Mon dossier
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'consultations.recherche_medecin' %}active{% endif %}" href="{{ url_for('consultations.recherche_medecin') }}">
+                                <i class="fas fa-user-md me-1"></i>
+                                Médecins
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
-                <ul class="navbar-nav">
+                
+                <!-- Bouton rendez-vous et profil utilisateur -->
+                <div class="d-flex align-items-center">
                     {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="nav-link">{{ current_user.prenom }} {{ current_user.nom }}</span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Déconnexion</a>
-                    </li>
+                        <a href="{{ url_for('consultations.dashboard') }}" class="btn btn-appointment">
+                            <i class="fas fa-plus me-1"></i>
+                            Nouveau RDV
+                        </a>
+                        
+                        <div class="dropdown user-profile">
+                            <a class="d-flex align-items-center dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="user-avatar">
+                                    {{ current_user.prenom[0] }}
+                                </div>
+                                <span class="user-name">{{ current_user.prenom }}</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">
+                                    <i class="fas fa-user me-2"></i>Mon profil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">
+                                    <i class="fas fa-cog me-2"></i>Paramètres
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.index') }}">
+                                    <i class="fas fa-question-circle me-2"></i>Aide
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                                </a></li>
+                            </ul>
+                        </div>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.login') }}">Connexion</a>
-                    </li>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-appointment">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Connexion
+                        </a>
                     {% endif %}
-                </ul>
+                </div>
             </div>
         </div>
     </nav>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
+    <!-- Contenu principal -->
     {% block content %}{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html> 

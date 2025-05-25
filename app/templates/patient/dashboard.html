@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord patient - Good Doctors</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --teal-color: #5cb3a8;
+            --light-teal: #c8e9e5;
+            --dark-blue: #2c3e50;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem 0;
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 1rem;
+        }
+        
+        .welcome-text {
+            font-size: 2rem;
+            color: var(--dark-blue);
+            margin-bottom: 3rem;
+        }
+        
+        .dashboard-card {
+            background: var(--light-teal);
+            border: none;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            color: inherit;
+        }
+        
+        .dashboard-icon {
+            background-color: var(--teal-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .dashboard-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-blue);
+            line-height: 1.3;
+        }
+        
+        .overview-section {
+            margin-top: 3rem;
+        }
+        
+        .overview-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 2rem;
+        }
+        
+        .xray-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .xray-image {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4a9d94 0%, #5cb3a8 50%, #6bc5bb 100%);
+            border-radius: 15px;
+            position: relative;
+            opacity: 0.8;
+        }
+        
+        .xray-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 40%, rgba(0,0,0,0.1) 100%);
+            border-radius: 15px;
+        }
+        
+        .stats-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: 400px;
+        }
+        
+        .chart-area {
+            background: var(--light-teal);
+            border-radius: 15px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .wave-chart {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+        }
+        
+        .wave-path {
+            fill: none;
+            stroke: var(--teal-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+        
+        .last-consultation {
+            text-align: center;
+        }
+        
+        .consultation-label {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .consultation-date {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+        }
+
+        .alert {
+            margin-bottom: 2rem;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .quick-actions {
+            margin-top: 2rem;
+        }
+
+        .quick-action-btn {
+            background: white;
+            border: 2px solid var(--teal-color);
+            color: var(--teal-color);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--teal-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Messages flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- En-tête -->
+        <div class="row">
+            <div class="col-12">
+                <h1 class="main-title">Tableau de bord patient</h1>
+                <h2 class="welcome-text">Bienvenue, {{ current_user.prenom }}</h2>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="window.location.href='{{ url_for('consultations.video_consultation') }}'">
+                <i class="fas fa-video"></i> Consultation vidéo
+            </button>
+            <button class="quick-action-btn" onclick="window.location.href='{{ url_for('consultations.urgence') }}'">
+                <i class="fas fa-ambulance"></i> Urgence
+            </button>
+            <button class="quick-action-btn" onclick="window.location.href='{{ url_for('consultations.ordonnance') }}'">
+                <i class="fas fa-prescription"></i> Ordonnances
+            </button>
+        </div>
+        
+        <!-- Cartes du tableau de bord -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.recherche_medecin') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="dashboard-title">Prendre un<br>rendez-vous</div>
+                </a>
+    </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.mes_consultations') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-comment-medical"></i>
+                </div>
+                    <div class="dashboard-title">Mes<br>consultations</div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('messages.index') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-envelope"></i>
+                        {% if unread_messages > 0 %}
+                        <span class="notification-badge">{{ unread_messages }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="dashboard-title">Messagerie</div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.dossier_medical') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-folder-plus"></i>
+                    </div>
+                    <div class="dashboard-title">Dossier<br>médical</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Deuxième rangée de cartes -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.video_consultation') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="dashboard-title">Consultation<br>vidéo</div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.documents') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-file-medical"></i>
+                    </div>
+                    <div class="dashboard-title">Documents<br>médicaux</div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.ressources') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-book-medical"></i>
+                    </div>
+                    <div class="dashboard-title">Ressources<br>éducatives</div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ url_for('consultations.avis') }}" class="dashboard-card">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="dashboard-title">Avis &<br>évaluations</div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Section Aperçu -->
+        <div class="row overview-section">
+            <div class="col-12">
+                <h3 class="overview-title">Aperçu</h3>
+            </div>
+    </div>
+
+        <div class="row">
+            <!-- Radiographie -->
+            <div class="col-lg-6">
+                <div class="xray-container">
+                    <div class="xray-image">
+                        <div class="xray-overlay"></div>
+                    </div>
+                </div>
+        </div>
+            
+            <!-- Statistiques et dernière consultation -->
+            <div class="col-lg-6">
+                <div class="stats-container">
+                    <div class="chart-area">
+                        <svg class="wave-chart" viewBox="0 0 400 80">
+                            <path class="wave-path" d="M0,60 Q50,20 100,40 T200,35 T300,45 T400,30" />
+                        </svg>
+    </div>
+
+                    <div class="last-consultation">
+                        <div class="consultation-label">Dernière consultation</div>
+                        {% if data and data.last_consultation %}
+                            <div class="consultation-date">{{ data.last_consultation.date }}</div>
+                            {% if data.last_consultation.medecin %}
+                            <div class="consultation-doctor">Dr. {{ data.last_consultation.medecin }}</div>
+                            {% endif %}
+                        {% else %}
+                            <div class="consultation-date">Aucune consultation</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animation de la courbe
+        function animateWave() {
+            const path = document.querySelector('.wave-path');
+            let offset = 0;
+            
+            function updateWave() {
+                offset += 2;
+                const d = `M0,${60 + Math.sin(offset * 0.1) * 5} Q50,${20 + Math.sin((offset + 50) * 0.1) * 8} 100,${40 + Math.sin((offset + 100) * 0.1) * 6} T200,${35 + Math.sin((offset + 200) * 0.1) * 7} T300,${45 + Math.sin((offset + 300) * 0.1) * 5} T400,${30 + Math.sin((offset + 400) * 0.1) * 6}`;
+                path.setAttribute('d', d);
+                requestAnimationFrame(updateWave);
+            }
+            
+            updateWave();
+        }
+        
+        // Démarrer l'animation au chargement de la page
+        document.addEventListener('DOMContentLoaded', animateWave);
+    </script>
+</body>
+</html> 

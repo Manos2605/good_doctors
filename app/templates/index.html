@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Good Doctors{% endblock %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">La santé à portée de clic</h1>
+                <p class="lead mb-4">Trouvez et prenez rendez-vous avec les meilleurs médecins en quelques clics.</p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Créer un compte
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{{ url_for('static', filename='images/hero-image.png') }}" alt="Médecin en ligne" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Pourquoi choisir Good Doctors ?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Rendez-vous rapides</h3>
+                    <p>Prenez rendez-vous en quelques clics, 24h/24 et 7j/7.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h3>Médecins qualifiés</h3>
+                    <p>Accédez à un réseau de médecins vérifiés et qualifiés.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Consultations en ligne</h3>
+                    <p>Consultez vos médecins depuis chez vous, en visioconférence.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Good Doctors</h5>
+                <p>La santé à portée de clic</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Liens utiles</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('main.legal') }}">Mentions légales</a></li>
+                    <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Suivez-nous</h5>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %} 
