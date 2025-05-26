@@ -3,10 +3,9 @@ from app.models import User, DossierMedical, Vaccination, Examen, Traitement, Do
 from datetime import date
 
 app = create_app()
-
-    with app.app_context():
-        # Créer toutes les tables
-        db.create_all()
+with app.app_context():
+    # Créer toutes les tables
+    db.create_all()
         
     # Vérifier si l'admin existe déjà
     admin = User.query.filter_by(email='admin@example.com').first()
