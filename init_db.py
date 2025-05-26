@@ -3,6 +3,7 @@ from app.models import User, DossierMedical, Vaccination, Examen, Traitement, Do
 from datetime import date
 
 app = create_app()
+
 with app.app_context():
     # Créer toutes les tables
     db.create_all()
