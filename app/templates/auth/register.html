@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,7 @@
             --light-teal: #b8e0dc;
             --dark-blue: #2c3e50;
         }
-        
+
         body {
             background: linear-gradient(135deg, var(--light-teal) 0%, #e8f5f3 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,22 +21,22 @@
             display: flex;
             align-items: center;
         }
-        
+
         .auth-container {
             background: white;
             border-radius: 25px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
             padding: 3rem;
             margin: 2rem 0;
             max-width: 500px;
             width: 100%;
         }
-        
+
         .logo-container {
             text-align: center;
             margin-bottom: 2rem;
         }
-        
+
         .logo-icon {
             background-color: var(--teal-color);
             color: white;
@@ -49,14 +50,14 @@
             margin-bottom: 1rem;
             box-shadow: 0 4px 15px rgba(92, 179, 168, 0.3);
         }
-        
+
         .logo-text {
             font-size: 2rem;
             font-weight: bold;
             color: var(--dark-blue);
             margin: 0;
         }
-        
+
         .auth-title {
             font-size: 1.8rem;
             font-weight: bold;
@@ -64,11 +65,11 @@
             text-align: center;
             margin-bottom: 2rem;
         }
-        
+
         .form-floating {
             margin-bottom: 1.5rem;
         }
-        
+
         .form-control {
             border: 2px solid #e9ecef;
             border-radius: 15px;
@@ -76,17 +77,17 @@
             font-size: 1rem;
             transition: all 0.3s ease;
         }
-        
+
         .form-control:focus {
             border-color: var(--teal-color);
             box-shadow: 0 0 0 0.2rem rgba(92, 179, 168, 0.25);
         }
-        
-        .form-floating > label {
+
+        .form-floating>label {
             color: #6c757d;
             padding-left: 1.2rem;
         }
-        
+
         .btn-auth {
             background-color: var(--teal-color);
             border: none;
@@ -99,21 +100,21 @@
             margin-bottom: 1.5rem;
             transition: all 0.3s ease;
         }
-        
+
         .btn-auth:hover {
             background-color: var(--dark-blue);
             color: white;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
-        
+
         .divider {
             text-align: center;
             margin: 2rem 0;
             position: relative;
             color: #6c757d;
         }
-        
+
         .divider::before {
             content: '';
             position: absolute;
@@ -124,14 +125,14 @@
             background-color: #e9ecef;
             z-index: 1;
         }
-        
+
         .divider span {
             background: white;
             padding: 0 1rem;
             position: relative;
             z-index: 2;
         }
-        
+
         .btn-social {
             border: 2px solid #e9ecef;
             color: var(--dark-blue);
@@ -146,84 +147,85 @@
             justify-content: center;
             text-decoration: none;
         }
-        
+
         .btn-social:hover {
             border-color: var(--teal-color);
             color: var(--teal-color);
             transform: translateY(-2px);
         }
-        
+
         .btn-social i {
             margin-right: 0.5rem;
             font-size: 1.2rem;
         }
-        
+
         .auth-footer {
             text-align: center;
             margin-top: 2rem;
             color: #6c757d;
         }
-        
+
         .auth-footer a {
             color: var(--teal-color);
             text-decoration: none;
             font-weight: 600;
         }
-        
+
         .auth-footer a:hover {
             color: var(--dark-blue);
         }
-        
+
         .form-row {
             display: flex;
             gap: 1rem;
         }
-        
+
         .form-row .form-floating {
             flex: 1;
         }
-        
+
         .terms-check {
             margin-bottom: 1.5rem;
         }
-        
+
         .terms-check .form-check-label {
             font-size: 0.9rem;
             color: #6c757d;
         }
-        
+
         .terms-check a {
             color: var(--teal-color);
             text-decoration: none;
         }
-        
+
         .terms-check a:hover {
             color: var(--dark-blue);
         }
-        
+
         /* Animation d'entrée */
         .auth-container {
             animation: slideIn 0.5s ease-out;
         }
-        
+
         @keyframes slideIn {
             from {
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         /* Responsive */
         @media (max-width: 576px) {
             .auth-container {
                 margin: 1rem;
                 padding: 2rem 1.5rem;
             }
-            
+
             .form-row {
                 flex-direction: column;
                 gap: 0;
@@ -231,9 +233,10 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-    <div class="row justify-content-center">
+        <div class="row justify-content-center">
             <div class="col-12">
                 <div class="auth-container mx-auto">
                     <div class="logo-container">
@@ -241,14 +244,26 @@
                             <i class="fas fa-plus"></i>
                         </div>
                         <h1 class="logo-text">Meditech</h1>
-                </div>
-                    
+                    </div>
+
                     <h2 class="auth-title">Créer un compte</h2>
-                    
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
                     <form method="POST" action="{{ url_for('auth.register') }}">
                         <div class="form-row">
                             <div class="form-floating">
-                                <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénom" required>
+                                <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénom"
+                                    required>
                                 <label for="prenom">Prénom</label>
                             </div>
                             <div class="form-floating">
@@ -258,12 +273,14 @@
                         </div>
 
                         <div class="form-floating">
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Email"
+                                required>
                             <label for="email">Adresse email</label>
                         </div>
 
                         <div class="form-floating">
-                            <input type="tel" class="form-control" id="telephone" name="telephone" placeholder="Téléphone" required>
+                            <input type="tel" class="form-control" id="telephone" name="telephone"
+                                placeholder="Téléphone" required>
                             <label for="telephone">Numéro de téléphone</label>
                         </div>
 
@@ -275,17 +292,20 @@
                         </div>
 
                         <div class="form-floating">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" required>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="Mot de passe" required>
                             <label for="password">Mot de passe</label>
                         </div>
 
                         <div class="form-floating">
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirmer le mot de passe" required>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                placeholder="Confirmer le mot de passe" required>
                             <label for="confirm_password">Confirmer le mot de passe</label>
                         </div>
 
                         <div class="form-floating">
-                            <textarea class="form-control" id="adresse" name="adresse" placeholder="Adresse" required></textarea>
+                            <textarea class="form-control" id="adresse" name="adresse" placeholder="Adresse"
+                                required></textarea>
                             <label for="adresse">Adresse</label>
                         </div>
 
@@ -293,7 +313,8 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="acceptTerms" required>
                                 <label class="form-check-label" for="acceptTerms">
-                                    J'accepte les <a href="{{ url_for('main.legal') }}">Conditions d'utilisation</a> et la <a href="{{ url_for('main.legal') }}">Politique de confidentialité</a>
+                                    J'accepte les <a href="{{ url_for('main.legal') }}">Conditions d'utilisation</a> et
+                                    la <a href="{{ url_for('main.legal') }}">Politique de confidentialité</a>
                                 </label>
                             </div>
                         </div>
@@ -303,54 +324,43 @@
                             Créer mon compte
                         </button>
                     </form>
-                    
+
                     <div class="divider">
                         <span>ou s'inscrire avec</span>
                     </div>
-                    
+
                     <a href="#" class="btn-social">
                         <i class="fab fa-google" style="color: #db4437;"></i>
                         Google
                     </a>
-                    
+
                     <a href="#" class="btn-social">
                         <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
                         Facebook
                     </a>
-                    
+
                     <div class="auth-footer">
-                        Déjà un compte ? 
+                        Déjà un compte ?
                         <a href="{{ url_for('auth.login') }}">Se connecter</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script>
+    <script>
         // Animation des champs au focus
         document.querySelectorAll('.form-control').forEach(input => {
-            input.addEventListener('focus', function() {
+            input.addEventListener('focus', function () {
                 this.parentElement.style.transform = 'scale(1.02)';
             });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-    });
-});
 
-        // Gestion du champ spécialité
-        document.getElementById('role').addEventListener('change', function() {
-            const specialiteField = document.querySelector('.specialite-field');
-            if (this.value === 'medecin' || this.value === 'veterinaire') {
-                specialiteField.style.display = 'block';
-                specialiteField.querySelector('input').required = true;
-            } else {
-                specialiteField.style.display = 'none';
-                specialiteField.querySelector('input').required = false;
-            }
+            input.addEventListener('blur', function () {
+                this.parentElement.style.transform = 'scale(1)';
+            });
         });
-</script>
+    </script>
 </body>
-</html> 
+
+</html>
