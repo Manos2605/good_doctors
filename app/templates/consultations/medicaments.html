@@ -57,54 +57,14 @@
                             </p>
                         </div>
                         <div class="card-footer bg-transparent">
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#medicamentModal{{ medicament.id }}">
+                            <a href="{{ url_for('consultations.detail_medicament', id=medicament.id) }}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-info-circle"></i> Détails
-                            </button>
+                            </a>
                             {% if current_user.role in ['admin', 'medecin'] %}
                             <a href="#" class="btn btn-warning btn-sm">
                                 <i class="fas fa-edit"></i> Modifier
                             </a>
                             {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal pour les détails -->
-                <div class="modal fade" id="medicamentModal{{ medicament.id }}" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">{{ medicament.nom }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    {% if medicament.image %}
-                                    <div class="col-md-4">
-                                        <img src="{{ url_for('static', filename='uploads/' + medicament.image) }}" class="img-fluid" alt="{{ medicament.nom }}">
-                                    </div>
-                                    {% endif %}
-                                    <div class="col-md-{% if medicament.image %}8{% else %}12{% endif %}">
-                                        <p><strong>Type:</strong> {{ medicament.type|title }}</p>
-                                        <p><strong>Catégorie:</strong> {{ medicament.categorie }}</p>
-                                        <p><strong>Prix:</strong> {{ "%.2f"|format(medicament.prix) }} €</p>
-                                        <p><strong>Stock:</strong> {{ medicament.stock }}</p>
-                                        <p><strong>Description:</strong><br>{{ medicament.description }}</p>
-                                        {% if medicament.effets_secondaires %}
-                                        <p><strong>Effets secondaires:</strong><br>{{ medicament.effets_secondaires }}</p>
-                                        {% endif %}
-                                        {% if medicament.contre_indications %}
-                                        <p><strong>Contre-indications:</strong><br>{{ medicament.contre_indications }}</p>
-                                        {% endif %}
-                                        {% if medicament.date_expiration %}
-                                        <p><strong>Date d'expiration:</strong> {{ medicament.date_expiration.strftime('%d/%m/%Y') }}</p>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('main.index') }}">Accueil</a> > 
+        <a href="{{ url_for('consultations.medicaments') }}">Pharmacie</a> > 
+        <a href="#">{{ medicament.categorie }}</a> > 
+        {{ medicament.nom }}
+    </div>
+
+    <div class="product-section">
+        <div class="product-header">
+            <div class="product-image">
+                <div class="medicine-box">
+                    <div class="medicine-name-on-box">{{ medicament.nom.split()[0] }}</div>
+                    <div class="medicine-dose-on-box">{{ medicament.nom.split()[-1] if medicament.nom.split()[-1].endswith('mg') else '' }}</div>
+                    <div class="medicine-pills">
+                        {% for _ in range(8) %}
+                        <div class="pill"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-info">
+                <h1>{{ medicament.nom }}</h1>
+                <p class="product-subtitle">{{ medicament.description }}</p>
+                
+                <div class="price-section">
+                    <div class="price">{{ "%.2f"|format(medicament.prix) }} €</div>
+                    <div class="price-unit">Boîte de {{ medicament.stock }} comprimés</div>
+                </div>
+                
+                <div class="availability">
+                    {% if medicament.stock > 0 %}
+                    ✅ En stock - Livraison sous 24h
+                    {% else %}
+                    ❌ Rupture de stock
+                    {% endif %}
+                </div>
+                
+                <div class="quantity-selector">
+                    <label>Quantité :</label>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
+                        <input type="number" class="quantity-input" value="1" id="quantity" min="1" max="10">
+                        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                    </div>
+                </div>
+                
+                <button class="btn-add-cart" onclick="addToCart()" {% if medicament.stock == 0 %}disabled{% endif %}>
+                    🛒 Ajouter au panier
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-section">
+        <div class="info-tabs">
+            <button class="tab active" onclick="showTab('description')">Description</button>
+            <button class="tab" onclick="showTab('posologie')">Posologie</button>
+            <button class="tab" onclick="showTab('precautions')">Précautions</button>
+            <button class="tab" onclick="showTab('composition')">Composition</button>
+        </div>
+
+        <div id="description" class="tab-content active">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🎯 Indications</h3>
+                    <p>{{ medicament.description }}</p>
+                </div>
+                <div class="info-card">
+                    <h3>💊 Forme pharmaceutique</h3>
+                    <p>{{ medicament.type }}</p>
+                </div>
+                <div class="info-card">
+                    <h3>🏷️ Classe thérapeutique</h3>
+                    <p>{{ medicament.categorie }}</p>
+                </div>
+                <div class="info-card">
+                    <h3>🏭 Laboratoire</h3>
+                    <p>Médicament {{ 'soumis à prescription médicale' if medicament.type == 'moderne' else 'traditionnel africain' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="posologie" class="tab-content">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>👥 Posologie</h3>
+                    <p>Consultez votre médecin pour la posologie adaptée à votre cas.</p>
+                </div>
+                <div class="info-card">
+                    <h3>⏰ Fréquence d'administration</h3>
+                    <p>Suivez les recommandations de votre médecin.</p>
+                </div>
+                <div class="info-card">
+                    <h3>🍽️ Mode d'administration</h3>
+                    <p>Voie orale. À prendre avec un grand verre d'eau.</p>
+                </div>
+                <div class="info-card">
+                    <h3>⚠️ Durée de traitement</h3>
+                    <p>Ne pas dépasser la durée prescrite par votre médecin.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="precautions" class="tab-content">
+            <div class="warning-section">
+                <h3>🚨 Contre-indications</h3>
+                <ul>
+                    {% for contre_indication in medicament.contre_indications.split('\n') %}
+                    <li>{{ contre_indication }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚠️ Effets secondaires</h3>
+                    <p>{{ medicament.effets_secondaires }}</p>
+                </div>
+                <div class="info-card">
+                    <h3>🍷 Alcool</h3>
+                    <p>Évitez la consommation d'alcool pendant le traitement.</p>
+                </div>
+                <div class="info-card">
+                    <h3>🤰 Grossesse et allaitement</h3>
+                    <p>Consultez votre médecin avant utilisation.</p>
+                </div>
+                <div class="info-card">
+                    <h3>🚗 Conduite et machines</h3>
+                    <p>Consultez votre médecin concernant l'aptitude à conduire.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="composition" class="tab-content">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>💊 Type de médicament</h3>
+                    <p>{{ medicament.type }}</p>
+                </div>
+                <div class="info-card">
+                    <h3>📦 Stock disponible</h3>
+                    <p>{{ medicament.stock }} unités</p>
+                </div>
+                <div class="info-card">
+                    <h3>📅 Date d'expiration</h3>
+                    <p>{{ medicament.date_expiration.strftime('%d/%m/%Y') if medicament.date_expiration else 'Non spécifiée' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="prescription-notice">
+        <h3>ℹ️ Information importante</h3>
+        <p>Ce médicament est {{ 'disponible sans ordonnance' if medicament.type == 'africain' else 'soumis à prescription médicale' }}. Cependant, il est recommandé de consulter un professionnel de santé avant utilisation, notamment en cas de traitement prolongé ou de prise d'autres médicaments.</p>
+    </div>
+</div>
+
+<style>
+    /* Styles du template */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        line-height: 1.6;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    .breadcrumb {
+        color: #64748b;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .breadcrumb a {
+        color: #26a69a;
+        text-decoration: none;
+    }
+    
+    .product-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .product-header {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+    
+    .product-image {
+        text-align: center;
+    }
+    
+    .medicine-box {
+        width: 250px;
+        height: 300px;
+        background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 12px;
+        margin: 0 auto 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e2e8f0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .medicine-box::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        height: 60px;
+        background: #26a69a;
+        border-radius: 8px;
+    }
+    
+    .medicine-name-on-box {
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 30px;
+        z-index: 1;
+    }
+    
+    .medicine-dose-on-box {
+        color: white;
+        font-size: 14px;
+        z-index: 1;
+    }
+    
+    .medicine-pills {
+        margin-top: 40px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .pill {
+        width: 20px;
+        height: 20px;
+        background: #fbbf24;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .product-info h1 {
+        font-size: 32px;
+        color: #1e293b;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    
+    .product-subtitle {
+        color: #64748b;
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+    
+    .price-section {
+        background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .price {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .price-unit {
+        color: rgba(255,255,255,0.8);
+        font-size: 14px;
+    }
+    
+    .availability {
+        background: #dcfce7;
+        color: #166534;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+    
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .quantity-btn {
+        background: #f8fafc;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        color: #26a69a;
+    }
+    
+    .quantity-btn:hover {
+        background: #e2e8f0;
+    }
+    
+    .quantity-input {
+        border: none;
+        padding: 10px 15px;
+        text-align: center;
+        width: 60px;
+        font-size: 16px;
+    }
+    
+    .btn-add-cart {
+        background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .btn-add-cart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(77, 208, 225, 0.3);
+    }
+    
+    .btn-add-cart:disabled {
+        background: #e2e8f0;
+        cursor: not-allowed;
+    }
+    
+    .info-tabs {
+        display: flex;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 20px;
+    }
+    
+    .tab {
+        padding: 15px 25px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        color: #64748b;
+        position: relative;
+    }
+    
+    .tab.active {
+        color: #26a69a;
+    }
+    
+    .tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #26a69a;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .info-card {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #26a69a;
+    }
+    
+    .info-card h3 {
+        color: #1e293b;
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .info-card p {
+        color: #64748b;
+        font-size: 14px;
+    }
+    
+    .warning-section {
+        background: #fef3cd;
+        border-left: 4px solid #f59e0b;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    
+    .warning-section h3 {
+        color: #92400e;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .warning-section ul {
+        color: #92400e;
+        margin-left: 20px;
+    }
+    
+    .prescription-notice {
+        background: #e0f2fe;
+        border-left: 4px solid #0284c7;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    
+    .prescription-notice h3 {
+        color: #0369a1;
+        margin-bottom: 10px;
+    }
+    
+    .prescription-notice p {
+        color: #0369a1;
+    }
+    
+    @media (max-width: 768px) {
+        .product-header {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .medicine-box {
+            width: 200px;
+            height: 240px;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    let quantity = 1;
+    
+    function changeQuantity(delta) {
+        const input = document.getElementById('quantity');
+        const newValue = parseInt(input.value) + delta;
+        if (newValue >= 1 && newValue <= 10) {
+            input.value = newValue;
+            quantity = newValue;
+        }
+    }
+    
+    function addToCart() {
+        alert(`${quantity} boîte(s) de {{ medicament.nom }} ajoutée(s) au panier !`);
+    }
+    
+    function showTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Remove active class from all tabs
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        
+        // Show selected tab content
+        document.getElementById(tabName).classList.add('active');
+        
+        // Add active class to clicked tab
+        event.target.classList.add('active');
+    }
+    
+    // Handle quantity input changes
+    document.getElementById('quantity').addEventListener('change', function() {
+        const value = parseInt(this.value);
+        if (value >= 1 && value <= 10) {
+            quantity = value;
+        } else {
+            this.value = quantity;
+        }
+    });
+</script>
+{% endblock %} 

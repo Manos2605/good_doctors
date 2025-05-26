@@ -1164,4 +1164,12 @@ def download_document(id):
         document.fichier,
         as_attachment=True,
         download_name=f'document_{document.date_emission.strftime("%Y%m%d")}.pdf'
-    ) 
+    )
+
+@bp.route('/medicaments/<int:id>')
+@login_required
+def detail_medicament(id):
+    medicament = Medicament.query.get_or_404(id)
+    return render_template('consultations/detail_medicament.html',
+                         title=f'{medicament.nom} - Détails',
+                         medicament=medicament) 

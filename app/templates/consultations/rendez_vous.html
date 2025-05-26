@@ -459,8 +459,8 @@
                         <div class="form-group">
                             <label class="form-label">Description détaillée</label>
                             <textarea class="form-textarea" name="description" placeholder="Décrivez vos symptômes ou le motif de votre consultation..."></textarea>
-                        </div>
-                    </div>
+                </div>
+            </div>
 
                     <div style="text-align: center; margin-top: 30px;">
                         <button type="submit" class="btn btn-primary">
@@ -496,11 +496,11 @@
                         <div style="margin-top: 8px;">
                             <span class="status-badge status-{{ rdv.statut }}">{{ rdv.statut }}</span>
                         </div>
-                    </div>
+                        </div>
                     <div class="appointment-actions">
                         <button class="btn btn-reschedule" onclick="rescheduleAppointment({{ rdv.id }})">📅 Reporter</button>
                         <button class="btn btn-cancel" onclick="cancelAppointment({{ rdv.id }})">❌ Annuler</button>
-                    </div>
+                        </div>
                 </div>
                 {% endfor %}
             </section>
@@ -511,8 +511,8 @@
                 
                 <div class="search-bar">
                     <input type="text" class="search-input" placeholder="🔍 Rechercher par médecin, spécialité ou motif..." id="searchHistory">
-                </div>
-                
+            </div>
+
                 <div class="filter-tabs">
                     <button class="filter-tab active" onclick="filterHistory('all')">Tous</button>
                     <button class="filter-tab" onclick="filterHistory('completed')">Terminés</button>
@@ -530,7 +530,7 @@
                         <div class="appointment-specialty">{{ rdv.medecin.specialite }}</div>
                         {% if rdv.consultation %}
                         <div class="appointment-reason">{{ rdv.consultation.type }}</div>
-                        {% endif %}
+                                            {% endif %}
                         <div style="margin-top: 8px;">
                             <span class="status-badge status-{{ rdv.statut }}">{{ rdv.statut }}</span>
                         </div>
@@ -538,7 +538,7 @@
                     <div class="appointment-actions">
                         <button class="btn btn-primary" onclick="viewDetails({{ rdv.id }})">👁️ Détails</button>
                         <button class="btn btn-primary" onclick="bookAgain({{ rdv.id }})">🔄 Reprendre RDV</button>
-                    </div>
+                        </div>
                 </div>
                 {% endfor %}
             </section>
@@ -563,8 +563,8 @@
                     <div class="stat-card">
                         <div class="stat-number">{{ stats.praticiens_consultes }}</div>
                         <div class="stat-label">Praticiens consultés</div>
-                    </div>
-                </div>
+            </div>
+        </div>
             </section>
         </main>
     </div>
@@ -705,14 +705,14 @@
         if (confirm('Voulez-vous vraiment reporter ce rendez-vous ?')) {
             fetch(`/api/rendez-vous/${id}/reporter`, {
                 method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
                     showSection('new-appointment');
-                } else {
-                    alert(data.error);
-                }
+            } else {
+                alert(data.error);
+            }
             });
         }
     }
@@ -720,8 +720,8 @@
     function cancelAppointment(id) {
         if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
             fetch(`/api/rendez-vous/${id}/annuler`, {
-                method: 'POST'
-            })
+                    method: 'POST'
+                })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -788,8 +788,8 @@
             .then(response => response.json())
             .then(data => {
                 updateCalendar(data);
-            });
     });
+});
 </script>
 {% endblock %}
 {% endblock %} 
