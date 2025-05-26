@@ -513,10 +513,10 @@
                     <input type="text" class="search-input" placeholder="🔍 Rechercher par médecin, spécialité ou motif..." id="searchHistory">
             </div>
 
-                <div class="filter-tabs">
-                    <button class="filter-tab active" onclick="filterHistory('all')">Tous</button>
-                    <button class="filter-tab" onclick="filterHistory('completed')">Terminés</button>
-                    <button class="filter-tab" onclick="filterHistory('cancelled')">Annulés</button>
+                <div class="filter-tabs" style="margin-top : 10px;">
+                    <button class="filter-tab active btn btn-primary btn-sm" onclick="filterHistory('all')"  style="background-color : #5cb3a8; border-color : #5cb3a8">Tous</button>
+                    <button class="filter-tab btn btn-primary btn-sm" onclick="filterHistory('completed')"  style="background-color : #5cb3a8; border-color : #5cb3a8">Terminés</button>
+                    <button class="filter-tab btn btn-primary btn-sm" onclick="filterHistory('cancelled')"  style="background-color : #5cb3a8; border-color : #5cb3a8">Annulés</button>
                 </div>
 
                 {% for rdv in historique %}

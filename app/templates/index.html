@@ -15,16 +15,16 @@
                 <h1 class="display-4 fw-bold mb-4">La santé à portée de clic</h1>
                 <p class="lead mb-4">Trouvez et prenez rendez-vous avec les meilleurs médecins en quelques clics.</p>
                 <div class="d-flex gap-3">
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg" style="background-color : #5cb3a8">
                         <i class="fas fa-sign-in-alt me-2"></i>Se connecter
                     </a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg" style="color : #5cb3a8">
                         <i class="fas fa-user-plus me-2"></i>Créer un compte
                     </a>
                 </div>
             </div>
             <div class="col-lg-6">
-                <img src="{{ url_for('static', filename='images/hero-image.png') }}" alt="Médecin en ligne" class="img-fluid">
+                <img src="https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Médecin en ligne" class="img-fluid"  style="border-radius : 25px">
             </div>
         </div>
     </div>
@@ -66,6 +66,26 @@
     </div>
 </section>
 
+<div class="container">
+    <h1 class="text-center mb-5">Nos Médicaments</h1>
+    
+    <div class="row">
+        {% for medicament in medicaments %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ medicament.nom }}</h5>
+                    <p class="card-text">{{ medicament.description }}</p>
+                    <p class="card-text"><strong>Prix :</strong> {{ medicament.prix }} €</p>
+                    <p class="card-text"><strong>Stock :</strong> {{ medicament.stock }}</p>
+                    <a href="{{ url_for('main.medicament_details', id=medicament.id) }}" class="btn btn-primary" style="background-color : #5cb3a8">Détails</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
 <!-- Footer -->
 <footer class="footer py-4">
     <div class="container">
@@ -77,8 +97,8 @@
             <div class="col-md-4">
                 <h5>Liens utiles</h5>
                 <ul class="list-unstyled">
-                    <li><a href="{{ url_for('main.legal') }}">Mentions légales</a></li>
-                    <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                    <li><a href="{{ url_for('main.legal') }}" style="color : #5cb3a8">Mentions légales</a></li>
+                    <li><a href="{{ url_for('main.contact') }}" style="color : #5cb3a8">Contact</a></li>
                 </ul>
             </div>
             <div class="col-md-4">
@@ -92,24 +112,4 @@
         </div>
     </div>
 </footer>
-
-<div class="container">
-    <h1 class="text-center mb-5">Nos Médicaments</h1>
-    
-    <div class="row">
-        {% for medicament in medicaments %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">{{ medicament.nom }}</h5>
-                    <p class="card-text">{{ medicament.description }}</p>
-                    <p class="card-text"><strong>Prix :</strong> {{ medicament.prix }} €</p>
-                    <p class="card-text"><strong>Stock :</strong> {{ medicament.stock }}</p>
-                    <a href="{{ url_for('main.medicament_details', id=medicament.id) }}" class="btn btn-primary">Détails</a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 {% endblock %} 
