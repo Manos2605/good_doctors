@@ -5,62 +5,162 @@
 {% block styles %}
 <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
     .section {
         background: white;
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 30px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .section:hover {
+        transform: translateY(-5px);
     }
     
     .section-title {
-        color: #2c3e50;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #4ecdc4;
+        color: #2d3748;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid;
+        border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
     }
     
     .info-item {
-        margin-bottom: 15px;
+        margin-bottom: 1.2rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .info-item:hover {
+        background: #edf2f7;
+        transform: translateX(5px);
     }
     
     .info-label {
         font-weight: 600;
-        color: #34495e;
+        color: #4a5568;
+        display: block;
+        margin-bottom: 0.5rem;
     }
     
     .vaccination-item, .consultation-item, .traitement-item, .document-item, .suivi-item {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f5f9 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .vaccination-item:hover, .consultation-item:hover, .traitement-item:hover, .document-item:hover, .suivi-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     }
     
     .status-badge {
         display: inline-block;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .status-active {
-        background: rgba(40, 167, 69, 0.1);
-        color: #28a745;
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
     }
     
     .status-completed {
-        background: rgba(108, 117, 125, 0.1);
-        color: #6c757d;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .floating-elements {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+    }
+
+    .floating-pill {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        opacity: 0.1;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .floating-pill:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+    .floating-pill:nth-child(2) { top: 60%; right: 15%; animation-delay: 2s; }
+    .floating-pill:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 4s; }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .section {
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="floating-elements">
+    <div class="floating-pill"></div>
+    <div class="floating-pill"></div>
+    <div class="floating-pill"></div>
+</div>
+
 <div class="container py-5">
-    <h1 class="mb-4">Mon Carnet Médical</h1>
+    <h1 class="mb-4" style="color: #2d3748; font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 2rem;">Mon Carnet Médical</h1>
     
     <!-- Informations personnelles -->
     <div class="section">
@@ -77,7 +177,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Date de naissance :</span>
-                    <span>{{ current_user.date_naissance.strftime('%d/%m/%Y') }}</span>
+                    <span>{{ current_user.date_naissance.strftime('%d/%m/%Y') if current_user.date_naissance else 'Non renseigné' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Sexe :</span>
@@ -145,7 +245,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Date :</span>
-                        <span>{{ vaccination.date_vaccination.strftime('%d/%m/%Y') }}</span>
+                        <span>{{ vaccination.date_vaccination.strftime('%d/%m/%Y') if vaccination.date_vaccination else 'Non renseigné' }}</span>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -225,7 +325,7 @@
                 <div class="col-md-6">
                     <div class="info-item">
                         <span class="info-label">Début :</span>
-                        <span>{{ traitement.date_debut.strftime('%d/%m/%Y') }}</span>
+                        <span>{{ traitement.date_debut.strftime('%d/%m/%Y') if traitement.date_debut else 'Non renseigné' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Fin :</span>
@@ -306,4 +406,42 @@
         {% endfor %}
     </div>
 </div>
+
+{% block scripts %}
+<script>
+    // Animation d'apparition progressive
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observer tous les éléments avec animation
+    document.querySelectorAll('.section').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+
+    // Effet de parallaxe subtil sur les éléments flottants
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const parallaxElements = document.querySelectorAll('.floating-pill');
+        
+        parallaxElements.forEach((element, index) => {
+            const speed = 0.5 + (index * 0.2);
+            element.style.transform = `translateY(${scrolled * speed}px)`;
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %} 

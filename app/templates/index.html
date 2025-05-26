@@ -92,4 +92,24 @@
         </div>
     </div>
 </footer>
+
+<div class="container">
+    <h1 class="text-center mb-5">Nos Médicaments</h1>
+    
+    <div class="row">
+        {% for medicament in medicaments %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ medicament.nom }}</h5>
+                    <p class="card-text">{{ medicament.description }}</p>
+                    <p class="card-text"><strong>Prix :</strong> {{ medicament.prix }} €</p>
+                    <p class="card-text"><strong>Stock :</strong> {{ medicament.stock }}</p>
+                    <a href="{{ url_for('main.medicament_details', id=medicament.id) }}" class="btn btn-primary">Détails</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %} 

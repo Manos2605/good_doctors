@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carnet Patient - {{ patient.nom }} {{ patient.prenom }} - Good Doctors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 20px;
+        }
+        
+        .logo-icon {
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-primary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #26a69a;
+        }
+        
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .breadcrumb {
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .breadcrumb a {
+            color: #26a69a;
+            text-decoration: none;
+        }
+        
+        .patient-header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .patient-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .patient-info h1 {
+            font-size: 28px;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .patient-id {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .quick-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            background: #f8fafc;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #26a69a;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .sidebar h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+        
+        .menu-item {
+            display: block;
+            padding: 10px 15px;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+            color: white;
+        }
+        
+        .content-area {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .section h2 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 24px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #26a69a;
+        }
+        
+        .info-card h3 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-card p, .info-card ul {
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        .info-card ul {
+            margin-left: 15px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-completed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-pending {
+            background: #fef3cd;
+            color: #92400e;
+        }
+        
+        .status-urgent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .chart-container {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(45deg, #e2e8f0 25%, transparent 25%, transparent 75%, #e2e8f0 75%, #e2e8f0),
+                        linear-gradient(45deg, #e2e8f0 25%, transparent 25%, transparent 75%, #e2e8f0 75%, #e2e8f0);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            border-radius: 8px;
+            font-style: italic;
+        }
+        
+        .document-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #26a69a;
+        }
+        
+        .document-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .document-icon {
+            width: 40px;
+            height: 40px;
+            background: #26a69a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .document-details h4 {
+            color: #1e293b;
+            margin-bottom: 2px;
+            font-size: 14px;
+        }
+        
+        .document-details p {
+            color: #64748b;
+            font-size: 12px;
+        }
+        
+        .btn-download {
+            background: #26a69a;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-download:hover {
+            background: #2d7a7a;
+            transform: translateY(-1px);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-warning {
+            background: #fef3cd;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .alert-info {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            color: #0369a1;
+        }
+        
+        .medication-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .medication-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .medication-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 16px;
+        }
+        
+        .medication-status {
+            font-size: 12px;
+        }
+        
+        .medication-details {
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .patient-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .quick-stats {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .quick-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="{{ url_for('main.index') }}" class="logo">
+                <div class="logo-icon">+</div>
+                Good Doctors
+            </a>
+            <div class="nav-buttons">
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary">🏠 Accueil</a>
+                <a href="{{ url_for('medicaments.index') }}" class="btn btn-primary">💊 Médicaments</a>
+                <a href="{{ url_for('patients.index') }}" class="btn btn-primary">👥 Patients</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">🔗 Connexion</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{{ url_for('main.index') }}">Accueil</a> > <a href="{{ url_for('patients.index') }}">Patients</a> > Carnet Patient - {{ patient.nom }} {{ patient.prenom }}
+        </div>
+
+        <div class="patient-header">
+            <div class="patient-avatar">{{ patient.prenom[0] }}{{ patient.nom[0] }}</div>
+            <div class="patient-info">
+                <h1>{{ patient.prenom }} {{ patient.nom }}</h1>
+                <div class="patient-id">ID Patient: #{{ patient.id }}</div>
+                <div class="quick-stats">
+                    <div class="stat">
+                        <div class="stat-label">Âge</div>
+                        <div class="stat-value">{{ patient.age }} ans</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Groupe sanguin</div>
+                        <div class="stat-value">{{ patient.groupe_sanguin }}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Dernière visite</div>
+                        <div class="stat-value">{{ patient.derniere_visite }}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Médecin référent</div>
+                        <div class="stat-value">{{ patient.medecin_referent }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <h3>Navigation</h3>
+                <ul class="sidebar-menu">
+                    <li><a href="#" class="menu-item active" onclick="showSection('personal')">👤 Informations personnelles</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('medical')">🩺 Informations médicales</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('vaccinations')">💉 Vaccinations</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('consultations')">📅 Consultations</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('treatments')">💊 Traitements</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('prescriptions')">📋 Ordonnances</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('monitoring')">📊 Suivi pathologies</a></li>
+                    <li><a href="#" class="menu-item" onclick="showSection('documents')">📁 Documents partagés</a></li>
+                </ul>
+            </aside>
+
+            <main class="content-area">
+                <!-- Section Informations Personnelles -->
+                <section id="personal" class="section active">
+                    <h2>👤 Informations personnelles</h2>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h3>👤 Identité</h3>
+                            <p><strong>Nom :</strong> {{ patient.nom }}</p>
+                            <p><strong>Prénom :</strong> {{ patient.prenom }}</p>
+                            <p><strong>Date de naissance :</strong> {{ patient.date_naissance }}</p>
+                            <p><strong>Sexe :</strong> {{ patient.sexe }}</p>
+                            <p><strong>Lieu de naissance :</strong> {{ patient.lieu_naissance }}</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>📍 Coordonnées</h3>
+                            <p><strong>Adresse :</strong> {{ patient.adresse }}</p>
+                            <p><strong>Téléphone :</strong> {{ patient.telephone }}</p>
+                            <p><strong>Email :</strong> {{ patient.email }}</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>🆘 Contact d'urgence</h3>
+                            <p><strong>Nom :</strong> {{ patient.contact_urgence.nom }}</p>
+                            <p><strong>Téléphone :</strong> {{ patient.contact_urgence.telephone }}</p>
+                            <p><strong>Relation :</strong> {{ patient.contact_urgence.relation }}</p>
+                            <p><strong>Adresse :</strong> {{ patient.contact_urgence.adresse }}</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>💼 Informations professionnelles</h3>
+                            <p><strong>Profession :</strong> {{ patient.profession }}</p>
+                            <p><strong>Employeur :</strong> {{ patient.employeur }}</p>
+                            <p><strong>Sécurité sociale :</strong> {{ patient.numero_securite_sociale }}</p>
+                            <p><strong>Mutuelle :</strong> {{ patient.mutuelle }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section Informations Médicales -->
+                <section id="medical" class="section">
+                    <h2>🩺 Informations médicales de base</h2>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h3>🩸 Données biologiques</h3>
+                            <p><strong>Groupe sanguin :</strong> {{ patient.groupe_sanguin }}</p>
+                            <p><strong>Électrophorèse :</strong> {{ patient.electrophorese }}</p>
+                            <p><strong>Facteur Rhésus :</strong> {{ patient.facteur_rhesus }}</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>📋 Antécédents médicaux</h3>
+                            <ul>
+                                {% for antecedent in patient.antecedents_medicaux %}
+                                <li>{{ antecedent }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h3>👨‍👩‍👧‍👦 Antécédents familiaux</h3>
+                            <ul>
+                                {% for antecedent in patient.antecedents_familiaux %}
+                                <li>{{ antecedent }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h3>⚠️ Allergies connues</h3>
+                            <ul>
+                                {% for allergie in patient.allergies %}
+                                <li>{{ allergie }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section Vaccinations -->
+                <section id="vaccinations" class="section">
+                    <h2>💉 Vaccinations</h2>
+                    {% if patient.prochain_rappel %}
+                    <div class="alert alert-info">
+                        <span>ℹ️</span>
+                        <div>
+                            <strong>Rappel :</strong> {{ patient.prochain_rappel }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Vaccin</th>
+                                <th>Date d'administration</th>
+                                <th>Lot</th>
+                                <th>Professionnel</th>
+                                <th>Prochain rappel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vaccination in patient.vaccinations %}
+                            <tr>
+                                <td>{{ vaccination.nom }}</td>
+                                <td>{{ vaccination.date }}</td>
+                                <td>{{ vaccination.lot }}</td>
+                                <td>{{ vaccination.professionnel }}</td>
+                                <td>
+                                    {% if vaccination.statut == 'completed' %}
+                                    <span class="status-badge status-completed">À jour</span>
+                                    {% elif vaccination.statut == 'pending' %}
+                                    <span class="status-badge status-pending">{{ vaccination.prochain_rappel }}</span>
+                                    {% else %}
+                                    {{ vaccination.prochain_rappel }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Consultations -->
+                <section id="consultations" class="section">
+                    <h2>📅 Consultations et hospitalisations</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Professionnel</th>
+                                <th>Motif</th>
+                                <th>Diagnostic</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for consultation in patient.consultations %}
+                            <tr>
+                                <td>{{ consultation.date }}</td>
+                                <td>{{ consultation.professionnel }}</td>
+                                <td>{{ consultation.motif }}</td>
+                                <td>{{ consultation.diagnostic }}</td>
+                                <td><button class="btn-download">📄 Voir</button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Traitements -->
+                <section id="treatments" class="section">
+                    <h2>💊 Traitements en cours</h2>
+                    {% if patient.alertes_traitement %}
+                    <div class="alert alert-warning">
+                        <span>⚠️</span>
+                        <div>
+                            <strong>Attention :</strong> {{ patient.alertes_traitement }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% for traitement in patient.traitements %}
+                    <div class="medication-card">
+                        <div class="medication-header">
+                            <div class="medication-name">{{ traitement.nom }}</div>
+                            <span class="status-badge status-{{ traitement.statut }}">{{ traitement.statut|title }}</span>
+                        </div>
+                        <div class="medication-details">
+                            <p><strong>Posologie :</strong> {{ traitement.posologie }}</p>
+                            <p><strong>Durée :</strong> {{ traitement.duree }}</p>
+                            <p><strong>Prescrit par :</strong> {{ traitement.prescripteur }}</p>
+                            <p><strong>Date de prescription :</strong> {{ traitement.date_prescription }}</p>
+                            {% if traitement.effets_secondaires %}
+                            <p><strong>Effets secondaires observés :</strong> {{ traitement.effets_secondaires }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+
+                <!-- Section Ordonnances -->
+                <section id="prescriptions" class="section">
+                    <h2>📋 Ordonnances et certificats médicaux</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Prescripteur</th>
+                                <th>Contenu</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ordonnance in patient.ordonnances %}
+                            <tr>
+                                <td>{{ ordonnance.date }}</td>
+                                <td>{{ ordonnance.type }}</td>
+                                <td>{{ ordonnance.prescripteur }}</td>
+                                <td>{{ ordonnance.contenu }}</td>
+                                <td><span class="status-badge status-{{ ordonnance.statut }}">{{ ordonnance.statut|title }}</span></td>
+                                <td><button class="btn-download">📄 Voir</button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Suivi Pathologies -->
+                <section id="monitoring" class="section">
+                    <h2>📊 Suivi des pathologies</h2>
+                    {% for pathologie in patient.pathologies %}
+                    <div class="chart-container">
+                        <h3 class="chart-title">{{ pathologie.nom }}</h3>
+                        <div class="chart-placeholder">
+                            Graphique d'évolution de {{ pathologie.nom }}
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <h3>📈 Évolution</h3>
+                                <p>{{ pathologie.evolution }}</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>🎯 Objectifs</h3>
+                                <p>{{ pathologie.objectifs }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+
+                <!-- Section Documents -->
+                <section id="documents" class="section">
+                    <h2>📁 Documents partagés</h2>
+                    {% for document in patient.documents %}
+                    <div class="document-item">
+                        <div class="document-info">
+                            <div class="document-icon">📄</div>
+                            <div class="document-details">
+                                <h4>{{ document.nom }}</h4>
+                                <p>Ajouté le {{ document.date_ajout }} par {{ document.ajoute_par }}</p>
+                            </div>
+                        </div>
+                        <button class="btn-download">📥 Télécharger</button>
+                    </div>
+                    {% endfor %}
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remove active class from all menu items
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked menu item
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html> 
