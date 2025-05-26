@@ -99,6 +99,7 @@ def nouvelle():
             db.session.add(consultation)
             db.session.commit()
             flash('Rendez-vous pris avec succès', 'success')
+            # Redirection vers la page des consultations avec un message de succès
             return redirect(url_for('consultations.index'))
         except Exception as e:
             db.session.rollback()
@@ -187,24 +188,65 @@ def update_notes(id):
 @bp.route('/rendez-vous')
 @login_required
 def rendez_vous():
-    if current_user.role not in ['medecin', 'veterinaire']:
+    if current_user.role != 'patient':
         flash('Accès non autorisé.', 'danger')
         return redirect(url_for('consultations.index'))
 
-    date_debut = request.args.get('date_debut', datetime.now().strftime('%Y-%m-%d'))
-    date_fin = request.args.get('date_fin', (datetime.now() + timedelta(days=7)).strftime('%Y-%m-%d'))
-
-    rendez_vous = RendezVous.query.filter(
-        RendezVous.medecin_id == current_user.id,
-        RendezVous.date_debut >= datetime.strptime(date_debut, '%Y-%m-%d'),
-        RendezVous.date_debut <= datetime.strptime(date_fin, '%Y-%m-%d')
+    # Récupérer les rendez-vous à venir
+    rendez_vous = RendezVous.query.join(Consultation).filter(
+        Consultation.patient_id == current_user.id,
+        RendezVous.date_debut >= datetime.now(),
+        RendezVous.statut != 'annule'
     ).order_by(RendezVous.date_debut).all()
+
+    # Récupérer l'historique des rendez-vous
+    historique = RendezVous.query.join(Consultation).filter(
+        Consultation.patient_id == current_user.id,
+        RendezVous.date_debut < datetime.now()
+    ).order_by(RendezVous.date_debut.desc()).all()
+
+    # Calculer les statistiques
+    stats = {
+        'total_rdv': RendezVous.query.join(Consultation).filter(
+            Consultation.patient_id == current_user.id,
+            RendezVous.date_debut >= datetime(datetime.now().year, 1, 1)
+        ).count(),
+        'rdv_a_venir': len(rendez_vous),
+        'taux_presence': 0,
+        'praticiens_consultes': 0
+    }
+
+    # Calculer le taux de présence
+    rdv_termines = RendezVous.query.join(Consultation).filter(
+        Consultation.patient_id == current_user.id,
+        RendezVous.statut == 'termine'
+    ).count()
+    rdv_annules = RendezVous.query.join(Consultation).filter(
+        Consultation.patient_id == current_user.id,
+        RendezVous.statut == 'annule'
+    ).count()
+    total_rdv = rdv_termines + rdv_annules
+    if total_rdv > 0:
+        stats['taux_presence'] = round((rdv_termines / total_rdv) * 100)
+
+    # Compter le nombre de praticiens consultés
+    stats['praticiens_consultes'] = db.session.query(RendezVous.medecin_id).join(Consultation).filter(
+        Consultation.patient_id == current_user.id
+    ).distinct().count()
+
+    # Récupérer la liste des spécialités pour le formulaire
+    specialites = db.session.query(User.specialite).filter(
+        User.role.in_(['medecin', 'veterinaire'])
+    ).distinct().all()
+    specialites = [s[0] for s in specialites]
 
     return render_template('consultations/rendez_vous.html',
                          title='Gestion des Rendez-vous',
                          rendez_vous=rendez_vous,
-                         date_debut=date_debut,
-                         date_fin=date_fin)
+                         historique=historique,
+                         stats=stats,
+                         specialites=specialites,
+                         now=datetime.now())
 
 @bp.route('/rendez-vous/nouveau', methods=['POST'])
 @login_required
@@ -837,4 +879,229 @@ def creer_medecins_test():
         db.session.rollback()
         flash('Erreur lors de la création des médecins de test', 'error')
     
-    return redirect(url_for('consultations.recherche_medecin')) 
+    return redirect(url_for('consultations.recherche_medecin'))
+
+@bp.route('/api/medecins/<specialite>')
+@login_required
+def get_medecins(specialite):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    medecins = User.query.filter(
+        User.role.in_(['medecin', 'veterinaire']),
+        User.specialite == specialite
+    ).all()
+    
+    return jsonify([{
+        'id': medecin.id,
+        'nom': medecin.nom,
+        'prenom': medecin.prenom,
+        'rating': medecin.rating if hasattr(medecin, 'rating') else 0
+    } for medecin in medecins])
+
+@bp.route('/api/calendrier/<int:year>/<int:month>')
+@login_required
+def get_calendrier(year, month):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    # Récupérer tous les jours du mois
+    import calendar
+    cal = calendar.monthcalendar(year, month)
+    jours = []
+    
+    for week in cal:
+        for day in week:
+            if day != 0:
+                date = datetime(year, month, day)
+                # Vérifier si le jour est disponible (pas de congés, pas complet)
+                disponible = True
+                if date < datetime.now():
+                    disponible = False
+                else:
+                    # Vérifier le nombre de rendez-vous pour ce jour
+                    rdv_count = RendezVous.query.filter(
+                        RendezVous.date_debut >= date,
+                        RendezVous.date_debut < date + timedelta(days=1),
+                        RendezVous.statut == 'reserve'
+                    ).count()
+                    if rdv_count >= 8:  # Maximum 8 rendez-vous par jour
+                        disponible = False
+                
+                jours.append({
+                    'jour': day,
+                    'disponible': disponible
+                })
+    
+    return jsonify(jours)
+
+@bp.route('/api/creneaux/<date>')
+@login_required
+def get_creneaux(date):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    try:
+        date_obj = datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'error': 'Format de date invalide'}), 400
+        
+    # Générer les créneaux de 30 minutes de 9h à 18h
+    creneaux = []
+    debut = datetime.combine(date_obj.date(), datetime.min.time().replace(hour=9))
+    fin = datetime.combine(date_obj.date(), datetime.min.time().replace(hour=18))
+    
+    current = debut
+    while current < fin:
+        # Vérifier si le créneau est disponible
+        rdv = RendezVous.query.filter(
+            RendezVous.date_debut == current,
+            RendezVous.statut == 'reserve'
+        ).first()
+        
+        creneaux.append({
+            'heure': current.strftime('%H:%M'),
+            'disponible': rdv is None
+        })
+        
+        current += timedelta(minutes=30)
+    
+    return jsonify(creneaux)
+
+@bp.route('/api/rendez-vous/<int:id>/reporter', methods=['POST'])
+@login_required
+def reporter_rendez_vous(id):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    rdv = RendezVous.query.get_or_404(id)
+    if rdv.consultation and rdv.consultation.patient_id != current_user.id:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    # Libérer l'ancien créneau
+    rdv.statut = 'disponible'
+    rdv.consultation = None
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/rendez-vous/<int:id>/annuler', methods=['POST'])
+@login_required
+def annuler_rendez_vous(id):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    rdv = RendezVous.query.get_or_404(id)
+    if rdv.consultation and rdv.consultation.patient_id != current_user.id:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    # Annuler le rendez-vous
+    rdv.statut = 'annule'
+    if rdv.consultation:
+        rdv.consultation.statut = 'annulee'
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/rendez-vous/<int:id>')
+@login_required
+def get_rendez_vous_details(id):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    rdv = RendezVous.query.get_or_404(id)
+    if rdv.consultation and rdv.consultation.patient_id != current_user.id:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    details = {
+        'date': rdv.date_debut.strftime('%d/%m/%Y'),
+        'heure': rdv.date_debut.strftime('%H:%M'),
+        'medecin': f"Dr. {rdv.medecin.prenom} {rdv.medecin.nom}",
+        'specialite': rdv.medecin.specialite,
+        'statut': rdv.statut
+    }
+    
+    if rdv.consultation:
+        details.update({
+            'type': rdv.consultation.type,
+            'description': rdv.consultation.description
+        })
+    
+    return jsonify({'details': details})
+
+@bp.route('/api/rendez-vous/<int:id>/reprendre')
+@login_required
+def reprendre_rendez_vous(id):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    rdv = RendezVous.query.get_or_404(id)
+    if rdv.consultation and rdv.consultation.patient_id != current_user.id:
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    return jsonify({
+        'success': True,
+        'medecin_id': rdv.medecin_id,
+        'specialite': rdv.medecin.specialite
+    })
+
+@bp.route('/api/rendez-vous/historique/<filter>')
+@login_required
+def get_historique(filter):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    query = RendezVous.query.join(Consultation).filter(
+        Consultation.patient_id == current_user.id
+    )
+    
+    if filter == 'completed':
+        query = query.filter(RendezVous.statut == 'termine')
+    elif filter == 'cancelled':
+        query = query.filter(RendezVous.statut == 'annule')
+    
+    rdvs = query.order_by(RendezVous.date_debut.desc()).all()
+    
+    return jsonify([{
+        'id': rdv.id,
+        'date': rdv.date_debut.strftime('%d/%m/%Y'),
+        'heure': rdv.date_debut.strftime('%H:%M'),
+        'medecin': f"Dr. {rdv.medecin.prenom} {rdv.medecin.nom}",
+        'specialite': rdv.medecin.specialite,
+        'statut': rdv.statut,
+        'type': rdv.consultation.type if rdv.consultation else None
+    } for rdv in rdvs])
+
+@bp.route('/api/rendez-vous/recherche/<term>')
+@login_required
+def rechercher_rendez_vous(term):
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Accès non autorisé'}), 403
+        
+    rdvs = RendezVous.query.join(Consultation).filter(
+        Consultation.patient_id == current_user.id,
+        or_(
+            User.nom.ilike(f'%{term}%'),
+            User.prenom.ilike(f'%{term}%'),
+            User.specialite.ilike(f'%{term}%'),
+            Consultation.type.ilike(f'%{term}%')
+        )
+    ).order_by(RendezVous.date_debut.desc()).all()
+    
+    return jsonify([{
+        'id': rdv.id,
+        'date': rdv.date_debut.strftime('%d/%m/%Y'),
+        'heure': rdv.date_debut.strftime('%H:%M'),
+        'medecin': f"Dr. {rdv.medecin.prenom} {rdv.medecin.nom}",
+        'specialite': rdv.medecin.specialite,
+        'statut': rdv.statut,
+        'type': rdv.consultation.type if rdv.consultation else None
+    } for rdv in rdvs]) 

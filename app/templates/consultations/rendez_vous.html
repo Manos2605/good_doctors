@@ -1,188 +1,795 @@
 {% extends "base.html" %}
 
+{% block title %}Gestion des Rendez-vous - Meditech{% endblock %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+        padding: 15px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .nav {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 20px;
+    }
+
+    .main-content {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 30px;
+        margin-top: 2rem;
+    }
+
+    .sidebar {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .sidebar h3 {
+        color: #1e293b;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+    }
+
+    .menu-item {
+        display: block;
+        padding: 12px 15px;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .menu-item:hover, .menu-item.active {
+        background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+        color: white;
+    }
+
+    .content-area {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .section {
+        display: none;
+    }
+
+    .section.active {
+        display: block;
+    }
+
+    .section h2 {
+        color: #1e293b;
+        margin-bottom: 25px;
+        font-size: 24px;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 10px;
+    }
+
+    .appointment-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .appointment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .appointment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .appointment-date {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .appointment-time {
+        background: #26a69a;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .appointment-details {
+        margin-bottom: 15px;
+    }
+
+    .appointment-doctor {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 5px;
+    }
+
+    .appointment-specialty {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .appointment-reason {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .appointment-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4dd0e1 0%, #26a69a 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(38, 166, 154, 0.3);
+    }
+
+    .btn-cancel {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #dc2626;
+    }
+
+    .btn-reschedule {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-reschedule:hover {
+        background: #d97706;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-confirmed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3cd;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-completed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .calendar-widget {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .calendar-nav {
+        background: none;
+        border: none;
+        color: #26a69a;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .calendar-nav:hover {
+        background: rgba(38, 166, 154, 0.1);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+
+    .calendar-day {
+        padding: 10px;
+        text-align: center;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .calendar-day.available {
+        background: white;
+        border: 1px solid #e2e8f0;
+    }
+
+    .calendar-day.available:hover {
+        background: #26a69a;
+        color: white;
+    }
+
+    .calendar-day.selected {
+        background: #26a69a;
+        color: white;
+    }
+
+    .calendar-day.unavailable {
+        background: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .time-slot {
+        padding: 10px;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .time-slot:hover {
+        border-color: #26a69a;
+        background: #f0fdfa;
+    }
+
+    .time-slot.selected {
+        background: #26a69a;
+        color: white;
+        border-color: #26a69a;
+    }
+
+    .time-slot.unavailable {
+        background: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+        border-color: #f1f5f9;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-info {
+        background: #e0f2fe;
+        border-left: 4px solid #0284c7;
+        color: #0369a1;
+    }
+
+    @media (max-width: 1024px) {
+        .main-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .sidebar {
+            position: static;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .appointment-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .appointment-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <h1 class="mb-4">Gestion des Rendez-vous</h1>
+<div class="container">
+    <div class="main-content">
+        <aside class="sidebar">
+            <h3>Menu Rendez-vous</h3>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="menu-item active" onclick="showSection('new-appointment')">➕ Nouveau RDV</a></li>
+                <li><a href="#" class="menu-item" onclick="showSection('upcoming')">📅 RDV à venir</a></li>
+                <li><a href="#" class="menu-item" onclick="showSection('history')">📋 Historique</a></li>
+                <li><a href="#" class="menu-item" onclick="showSection('statistics')">📊 Statistiques</a></li>
+            </ul>
+        </aside>
 
-            <!-- Filtres de date -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('consultations.rendez_vous') }}" class="row g-3">
-                        <div class="col-md-5">
-                            <label for="date_debut" class="form-label">Date de début</label>
-                            <input type="date" class="form-control" id="date_debut" name="date_debut" 
-                                   value="{{ date_debut }}" min="{{ now.strftime('%Y-%m-%d') }}">
-                        </div>
-                        <div class="col-md-5">
-                            <label for="date_fin" class="form-label">Date de fin</label>
-                            <input type="date" class="form-control" id="date_fin" name="date_fin" 
-                                   value="{{ date_fin }}" min="{{ date_debut }}">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">Filtrer</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Création de nouveaux créneaux -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Créer de nouveaux créneaux</h5>
-                </div>
-                <div class="card-body">
-                    <form id="nouveauRendezVousForm" class="row g-3">
-                        <div class="col-md-5">
-                            <label for="nouveau_date_debut" class="form-label">Date et heure de début</label>
-                            <input type="datetime-local" class="form-control" id="nouveau_date_debut" required>
-                        </div>
-                        <div class="col-md-5">
-                            <label for="nouveau_date_fin" class="form-label">Date et heure de fin</label>
-                            <input type="datetime-local" class="form-control" id="nouveau_date_fin" required>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success w-100">Créer</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Liste des rendez-vous -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Mes rendez-vous</h5>
-                </div>
-                <div class="card-body">
-                    {% if rendez_vous %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Heure</th>
-                                        <th>Statut</th>
-                                        <th>Patient</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for rdv in rendez_vous %}
-                                    <tr>
-                                        <td>{{ rdv.date_debut.strftime('%d/%m/%Y') }}</td>
-                                        <td>{{ rdv.date_debut.strftime('%H:%M') }} - {{ rdv.date_fin.strftime('%H:%M') }}</td>
-                                        <td>
-                                            <span class="badge {% if rdv.statut == 'disponible' %}bg-success{% elif rdv.statut == 'reserve' %}bg-primary{% else %}bg-danger{% endif %}">
-                                                {{ rdv.statut|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if rdv.consultation and rdv.consultation.patient %}
-                                                {{ rdv.consultation.patient.prenom }} {{ rdv.consultation.patient.nom }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if rdv.statut == 'disponible' %}
-                                            <button class="btn btn-danger btn-sm supprimer-rdv" data-id="{{ rdv.id }}">
-                                                <i class="fas fa-trash"></i> Supprimer
-                                            </button>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
+        <main class="content-area">
+            <!-- Section Nouveau Rendez-vous -->
+            <section id="new-appointment" class="section active">
+                <h2>➕ Prendre un nouveau rendez-vous</h2>
+                
+                <form id="appointmentForm" method="POST" action="{{ url_for('consultations.nouvelle') }}">
+                    <input type="hidden" name="medecin_id" value="{{ medecin.id if medecin else '' }}">
+                    
+                    <div class="form-section">
+                        <h3>🏥 Sélection du praticien</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Spécialité *</label>
+                                <select class="form-select" id="specialty" name="specialty" required onchange="updateDoctors()">
+                                    <option value="">Choisir une spécialité</option>
+                                    {% for specialite in specialites %}
+                                    <option value="{{ specialite }}">{{ specialite }}</option>
                                     {% endfor %}
-                                </tbody>
-                            </table>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Praticien *</label>
+                                <select class="form-select" id="doctor" name="medecin_id" required>
+                                    <option value="">Sélectionner d'abord une spécialité</option>
+                                </select>
+                            </div>
                         </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            Aucun rendez-vous trouvé pour cette période.
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📅 Date et heure</h3>
+                        <div class="calendar-widget">
+                            <div class="calendar-header">
+                                <button type="button" class="calendar-nav" onclick="changeMonth(-1)">❮</button>
+                                <h4 id="currentMonth">{{ now.strftime('%B %Y') }}</h4>
+                                <button type="button" class="calendar-nav" onclick="changeMonth(1)">❯</button>
+                            </div>
+                            <div class="calendar-grid" id="calendarGrid">
+                                <!-- Les jours seront générés dynamiquement -->
+                            </div>
                         </div>
-                    {% endif %}
+                        
+                        <div class="time-slots" id="timeSlots" style="display: none;">
+                            <!-- Les créneaux seront générés dynamiquement -->
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📝 Informations consultation</h3>
+                        <div class="form-group">
+                            <label class="form-label">Motif de consultation *</label>
+                            <select class="form-select" name="type" required>
+                                <option value="">Sélectionner un motif</option>
+                                <option value="controle">Contrôle de routine</option>
+                                <option value="suivi">Suivi pathologie chronique</option>
+                                <option value="symptomes">Nouveaux symptômes</option>
+                                <option value="certificat">Certificat médical</option>
+                                <option value="vaccination">Vaccination</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description détaillée</label>
+                            <textarea class="form-textarea" name="description" placeholder="Décrivez vos symptômes ou le motif de votre consultation..."></textarea>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn btn-primary">
+                            ✅ Confirmer le rendez-vous
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Section Rendez-vous à venir -->
+            <section id="upcoming" class="section">
+                <h2>📅 Rendez-vous à venir</h2>
+                
+                <div class="alert alert-info">
+                    <span>ℹ️</span>
+                    <div>
+                        <strong>Rappel :</strong> Pensez à arriver 10 minutes avant votre rendez-vous.
+                    </div>
                 </div>
-            </div>
-        </div>
+
+                {% for rdv in rendez_vous %}
+                <div class="appointment-card">
+                    <div class="appointment-header">
+                        <div class="appointment-date">{{ rdv.date_debut.strftime('%A %d %B %Y') }}</div>
+                        <div class="appointment-time">{{ rdv.date_debut.strftime('%H:%M') }}</div>
+                    </div>
+                    <div class="appointment-details">
+                        <div class="appointment-doctor">Dr. {{ rdv.medecin.prenom }} {{ rdv.medecin.nom }}</div>
+                        <div class="appointment-specialty">{{ rdv.medecin.specialite }}</div>
+                        {% if rdv.consultation %}
+                        <div class="appointment-reason">{{ rdv.consultation.type }}</div>
+                        {% endif %}
+                        <div style="margin-top: 8px;">
+                            <span class="status-badge status-{{ rdv.statut }}">{{ rdv.statut }}</span>
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="btn btn-reschedule" onclick="rescheduleAppointment({{ rdv.id }})">📅 Reporter</button>
+                        <button class="btn btn-cancel" onclick="cancelAppointment({{ rdv.id }})">❌ Annuler</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+
+            <!-- Section Historique -->
+            <section id="history" class="section">
+                <h2>📋 Historique des rendez-vous</h2>
+                
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="🔍 Rechercher par médecin, spécialité ou motif..." id="searchHistory">
+                </div>
+                
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterHistory('all')">Tous</button>
+                    <button class="filter-tab" onclick="filterHistory('completed')">Terminés</button>
+                    <button class="filter-tab" onclick="filterHistory('cancelled')">Annulés</button>
+                </div>
+
+                {% for rdv in historique %}
+                <div class="appointment-card">
+                    <div class="appointment-header">
+                        <div class="appointment-date">{{ rdv.date_debut.strftime('%A %d %B %Y') }}</div>
+                        <div class="appointment-time">{{ rdv.date_debut.strftime('%H:%M') }}</div>
+                    </div>
+                    <div class="appointment-details">
+                        <div class="appointment-doctor">Dr. {{ rdv.medecin.prenom }} {{ rdv.medecin.nom }}</div>
+                        <div class="appointment-specialty">{{ rdv.medecin.specialite }}</div>
+                        {% if rdv.consultation %}
+                        <div class="appointment-reason">{{ rdv.consultation.type }}</div>
+                        {% endif %}
+                        <div style="margin-top: 8px;">
+                            <span class="status-badge status-{{ rdv.statut }}">{{ rdv.statut }}</span>
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="btn btn-primary" onclick="viewDetails({{ rdv.id }})">👁️ Détails</button>
+                        <button class="btn btn-primary" onclick="bookAgain({{ rdv.id }})">🔄 Reprendre RDV</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+
+            <!-- Section Statistiques -->
+            <section id="statistics" class="section">
+                <h2>📊 Statistiques de vos consultations</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total_rdv }}</div>
+                        <div class="stat-label">RDV cette année</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.rdv_a_venir }}</div>
+                        <div class="stat-label">RDV à venir</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.taux_presence }}%</div>
+                        <div class="stat-label">Taux de présence</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.praticiens_consultes }}</div>
+                        <div class="stat-label">Praticiens consultés</div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 </div>
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Définir les dates minimales
-    const dateDebutInput = document.getElementById('date_debut');
-    const dateFinInput = document.getElementById('date_fin');
-    const nouveauDateDebutInput = document.getElementById('nouveau_date_debut');
-    const nouveauDateFinInput = document.getElementById('nouveau_date_fin');
-    
-    const today = new Date().toISOString().split('T')[0];
-    dateDebutInput.min = today;
-    nouveauDateDebutInput.min = today;
+    // Variables globales
+    let currentMonth = {{ now.month - 1 }};
+    let currentYear = {{ now.year }};
+    let selectedDate = null;
+    let selectedTime = null;
 
-    // Mettre à jour la date de fin minimale
-    dateDebutInput.addEventListener('change', function() {
-        dateFinInput.min = this.value;
-    });
-
-    nouveauDateDebutInput.addEventListener('change', function() {
-        nouveauDateFinInput.min = this.value;
-    });
-
-    // Gestion de la création de nouveaux créneaux
-    document.getElementById('nouveauRendezVousForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Fonction pour changer de section
+    function showSection(sectionId) {
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(section => section.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
         
-        const dateDebut = nouveauDateDebutInput.value;
-        const dateFin = nouveauDateFinInput.value;
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => item.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // Fonction pour mettre à jour la liste des médecins selon la spécialité
+    function updateDoctors() {
+        const specialtySelect = document.getElementById('specialty');
+        const doctorSelect = document.getElementById('doctor');
+        const selectedSpecialty = specialtySelect.value;
         
-        fetch('{{ url_for("consultations.nouveau_rendez_vous") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `date_debut=${dateDebut}&date_fin=${dateFin}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Une erreur est survenue lors de la création des créneaux.');
+        // Appel AJAX pour récupérer les médecins de la spécialité
+        fetch(`/api/medecins/${selectedSpecialty}`)
+            .then(response => response.json())
+            .then(data => {
+                doctorSelect.innerHTML = '<option value="">Sélectionner un praticien</option>';
+                data.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.id;
+                    option.textContent = `${doctor.nom} (⭐ ${doctor.rating})`;
+                    doctorSelect.appendChild(option);
+                });
+                doctorSelect.disabled = false;
+            });
+    }
+
+    // Fonction pour sélectionner une date
+    function selectDate(element) {
+        if (element.classList.contains('unavailable')) return;
+        
+        const selectedDates = document.querySelectorAll('.calendar-day.selected');
+        selectedDates.forEach(date => date.classList.remove('selected'));
+        
+        element.classList.add('selected');
+        selectedDate = element.textContent;
+        
+        // Appel AJAX pour récupérer les créneaux disponibles
+        fetch(`/api/creneaux/${currentYear}-${currentMonth + 1}-${selectedDate}`)
+            .then(response => response.json())
+            .then(data => {
+                const timeSlots = document.getElementById('timeSlots');
+                timeSlots.innerHTML = '';
+                data.forEach(creneau => {
+                    const slot = document.createElement('div');
+                    slot.className = `time-slot ${creneau.disponible ? '' : 'unavailable'}`;
+                    slot.textContent = creneau.heure;
+                    if (creneau.disponible) {
+                        slot.onclick = () => selectTime(slot);
+                    }
+                    timeSlots.appendChild(slot);
+                });
+                timeSlots.style.display = 'grid';
+            });
+    }
+
+    // Fonction pour sélectionner un créneau horaire
+    function selectTime(element) {
+        if (element.classList.contains('unavailable')) return;
+        
+        const selectedTimes = document.querySelectorAll('.time-slot.selected');
+        selectedTimes.forEach(time => time.classList.remove('selected'));
+        
+        element.classList.add('selected');
+        selectedTime = element.textContent;
+    }
+
+    // Fonction pour changer de mois dans le calendrier
+    function changeMonth(direction) {
+        currentMonth += direction;
+        
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        } else if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        
+        const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        
+        document.getElementById('currentMonth').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        
+        // Appel AJAX pour mettre à jour le calendrier
+        fetch(`/api/calendrier/${currentYear}/${currentMonth + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                updateCalendar(data);
+            });
+    }
+
+    // Fonction pour mettre à jour le calendrier
+    function updateCalendar(data) {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        
+        // Ajouter les jours de la semaine
+        ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            dayElement.textContent = day;
+            grid.appendChild(dayElement);
         });
-    });
+        
+        // Ajouter les jours du mois
+        data.forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = `calendar-day ${day.disponible ? 'available' : 'unavailable'}`;
+            dayElement.textContent = day.jour;
+            if (day.disponible) {
+                dayElement.onclick = () => selectDate(dayElement);
+            }
+            grid.appendChild(dayElement);
+        });
+    }
 
-    // Gestion de la suppression des rendez-vous
-    document.querySelectorAll('.supprimer-rdv').forEach(button => {
-        button.addEventListener('click', function() {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce créneau ?')) {
-                const rdvId = this.dataset.id;
-                
-                fetch(`{{ url_for('consultations.supprimer_rendez_vous', id=0) }}`.replace('0', rdvId), {
-                    method: 'POST'
-                })
+    // Fonctions pour la gestion des rendez-vous
+    function rescheduleAppointment(id) {
+        if (confirm('Voulez-vous vraiment reporter ce rendez-vous ?')) {
+            fetch(`/api/rendez-vous/${id}/reporter`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSection('new-appointment');
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    }
+
+    function cancelAppointment(id) {
+        if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+            fetch(`/api/rendez-vous/${id}/annuler`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    }
+
+    function viewDetails(id) {
+        fetch(`/api/rendez-vous/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                alert(`Détails du rendez-vous :\n\n${data.details}`);
+            });
+    }
+
+    function bookAgain(id) {
+        if (confirm('Voulez-vous prendre un nouveau rendez-vous avec le même praticien ?')) {
+            fetch(`/api/rendez-vous/${id}/reprendre`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.reload();
-                    } else {
-                        alert(data.error);
+                        showSection('new-appointment');
+                        // Pré-remplir le formulaire
+                        document.getElementById('specialty').value = data.specialite;
+                        updateDoctors();
+                        document.getElementById('doctor').value = data.medecin_id;
                     }
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    alert('Une erreur est survenue lors de la suppression du créneau.');
                 });
-            }
-        });
+        }
+    }
+
+    // Fonction de filtrage de l'historique
+    function filterHistory(filter) {
+        const tabs = document.querySelectorAll('.filter-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        fetch(`/api/rendez-vous/historique/${filter}`)
+            .then(response => response.json())
+            .then(data => {
+                // Mettre à jour l'affichage avec les données filtrées
+                updateHistoryDisplay(data);
+            });
+    }
+
+    // Fonction de recherche dans l'historique
+    document.getElementById('searchHistory')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        fetch(`/api/rendez-vous/recherche/${searchTerm}`)
+            .then(response => response.json())
+            .then(data => {
+                updateHistoryDisplay(data);
+            });
     });
-});
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Charger le calendrier initial
+        fetch(`/api/calendrier/${currentYear}/${currentMonth + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                updateCalendar(data);
+            });
+    });
 </script>
 {% endblock %}
 {% endblock %} 
