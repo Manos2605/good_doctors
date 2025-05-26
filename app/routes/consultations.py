@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, send_file
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from app.models import (
@@ -745,38 +745,62 @@ def ordonnance(consultation_id):
 @login_required
 def carnet_medical():
     if current_user.role != 'patient':
-        flash('Accès non autorisé.', 'danger')
+        flash('Accès non autorisé', 'error')
         return redirect(url_for('main.index'))
     
+    # Récupérer le dossier médical du patient
     dossier = DossierMedical.query.filter_by(patient_id=current_user.id).first()
-    if not dossier:
-        dossier = DossierMedical(patient_id=current_user.id)
-        db.session.add(dossier)
-        db.session.commit()
+    
+    # Récupérer la dernière consultation
+    derniere_consultation = Consultation.query.filter_by(
+        patient_id=current_user.id
+    ).order_by(Consultation.date.desc()).first()
+    
+    # Récupérer le médecin référent
+    medecin_referent = None
+    if dossier and dossier.medecin_referent_id:
+        medecin_referent = User.query.get(dossier.medecin_referent_id)
     
     # Récupérer les vaccinations
-    vaccinations = Vaccination.query.filter_by(dossier_id=dossier.id).order_by(Vaccination.date_vaccination.desc()).all()
+    vaccinations = Vaccination.query.filter_by(
+        dossier_id=dossier.id
+    ).order_by(Vaccination.date_vaccination.desc()).all() if dossier else []
     
     # Récupérer les consultations
-    consultations = Consultation.query.filter_by(patient_id=current_user.id).order_by(Consultation.date.desc()).all()
+    consultations = Consultation.query.filter_by(
+        patient_id=current_user.id
+    ).order_by(Consultation.date.desc()).all()
     
     # Récupérer les traitements en cours
-    traitements = Traitement.query.filter_by(dossier_id=dossier.id, statut='en_cours').all()
+    traitements = Traitement.query.filter_by(dossier_id=dossier.id, statut='en_cours').order_by(Traitement.date_debut.desc()).all() if dossier else []
     
-    # Récupérer les documents médicaux
-    documents = DocumentMedical.query.filter_by(dossier_id=dossier.id).order_by(DocumentMedical.date_emission.desc()).all()
+    # Récupérer les ordonnances
+    ordonnances = []
+    for consultation in consultations:
+        if consultation.ordonnance:
+            ordonnances.append(consultation.ordonnance)
     
     # Récupérer les suivis de pathologies
-    suivis = SuiviPathologie.query.filter_by(dossier_id=dossier.id).all()
+    suivis = SuiviPathologie.query.filter_by(
+        dossier_id=dossier.id
+    ).order_by(SuiviPathologie.date_mesure.desc()).all() if dossier else []
+    
+    # Récupérer les documents médicaux
+    documents = DocumentMedical.query.filter_by(
+        dossier_id=dossier.id
+    ).order_by(DocumentMedical.date_emission.desc()).all() if dossier else []
     
     return render_template('consultations/carnet_medical.html',
-                         title='Carnet Médical',
-                         dossier=dossier,
-                         vaccinations=vaccinations,
-                         consultations=consultations,
-                         traitements=traitements,
-                         documents=documents,
-                         suivis=suivis)
+                          title='Carnet Médical',
+                          dossier=dossier,
+                          derniere_consultation=derniere_consultation,
+                          medecin_referent=medecin_referent,
+                          vaccinations=vaccinations,
+                          consultations=consultations,
+                          traitements=traitements,
+                          ordonnances=ordonnances,
+                          suivis=suivis,
+                          documents=documents)
 
 @bp.route('/medecin/creneaux', methods=['GET', 'POST'])
 @login_required
@@ -1104,4 +1128,40 @@ def rechercher_rendez_vous(term):
         'specialite': rdv.medecin.specialite,
         'statut': rdv.statut,
         'type': rdv.consultation.type if rdv.consultation else None
-    } for rdv in rdvs]) 
+    } for rdv in rdvs])
+
+@bp.route('/ordonnances/<int:id>/download')
+@login_required
+def download_ordonnance(id):
+    if current_user.role != 'patient':
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.index'))
+    
+    ordonnance = Ordonnance.query.get_or_404(id)
+    if ordonnance.patient_id != current_user.id:
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.index'))
+    
+    return send_file(
+        ordonnance.fichier,
+        as_attachment=True,
+        download_name=f'ordonnance_{ordonnance.date.strftime("%Y%m%d")}.pdf'
+    )
+
+@bp.route('/documents/<int:id>/download')
+@login_required
+def download_document(id):
+    if current_user.role != 'patient':
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.index'))
+    
+    document = DocumentMedical.query.get_or_404(id)
+    if document.patient_id != current_user.id:
+        flash('Accès non autorisé', 'error')
+        return redirect(url_for('main.index'))
+    
+    return send_file(
+        document.fichier,
+        as_attachment=True,
+        download_name=f'document_{document.date_emission.strftime("%Y%m%d")}.pdf'
+    ) 

@@ -50,6 +50,7 @@ with app.app_context():
         # Créer un dossier médical pour le patient
         dossier = DossierMedical(
             patient=patient,
+            medecin_referent=medecin,
             groupe_sanguin='A+',
             allergies='Aucune allergie connue',
             antecedents_medicaux='Aucun antécédent médical',

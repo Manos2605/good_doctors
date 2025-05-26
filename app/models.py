@@ -29,7 +29,8 @@ class User(UserMixin, db.Model):
     consultations_patient = db.relationship('Consultation', backref='patient', lazy='dynamic', foreign_keys='Consultation.patient_id')
     messages_envoyes = db.relationship('Message', backref='expediteur', lazy='dynamic', foreign_keys='Message.expediteur_id')
     messages_recus = db.relationship('Message', backref='destinataire', lazy='dynamic', foreign_keys='Message.destinataire_id')
-    dossier_medical = db.relationship('DossierMedical', backref='patient', uselist=False)
+    dossier_medical = db.relationship('DossierMedical', backref='patient', uselist=False, foreign_keys='DossierMedical.patient_id')
+    dossiers_referents = db.relationship('DossierMedical', backref='medecin_referent', lazy='dynamic', foreign_keys='DossierMedical.medecin_referent_id')
     rendez_vous = db.relationship('RendezVous', backref='medecin', lazy='dynamic')
 
     def set_password(self, password):
@@ -41,6 +42,7 @@ class User(UserMixin, db.Model):
 class DossierMedical(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    medecin_referent_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     groupe_sanguin = db.Column(db.String(5))  # A+, B-, AB+, O-, etc.
     electrophorese = db.Column(db.String(100))
     antecedents_medicaux = db.Column(db.Text)
