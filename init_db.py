@@ -34,6 +34,54 @@ with app.app_context():
         medecin.set_password('medecin123')
         db.session.add(medecin)
         
+        # Créer des médecins camerounais
+        medecins_camerounais = [
+            User(
+                email='nkengue@example.com',
+                nom='Nkengue',
+                prenom='François',
+                role='medecin',
+                specialite='Cardiologie',
+                telephone='237612345678'
+            ),
+            User(
+                email='tchokouani@example.com',
+                nom='Tchokouani',
+                prenom='Marie-Claire',
+                role='medecin',
+                specialite='Pédiatrie',
+                telephone='237623456789'
+            ),
+            User(
+                email='mboua@example.com',
+                nom='Mboua',
+                prenom='Jean-Pierre',
+                role='medecin',
+                specialite='Dermatologie',
+                telephone='237634567890'
+            ),
+            User(
+                email='nguimfack@example.com',
+                nom='Nguimfack',
+                prenom='Aurélie',
+                role='medecin',
+                specialite='Gynécologie',
+                telephone='237645678901'
+            ),
+            User(
+                email='kamga@example.com',
+                nom='Kamga',
+                prenom='Samuel',
+                role='medecin',
+                specialite='Neurologie',
+                telephone='237656789012'
+            )
+        ]
+        
+        for med in medecins_camerounais:
+            med.set_password('medecin123')
+            db.session.add(med)
+        
         # Créer un patient de test
         patient = User(
             email='patient@example.com',
